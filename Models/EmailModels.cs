@@ -46,6 +46,9 @@ namespace Mkg_Elcotec_Automation.Models.EmailModels
     /// <summary>
     /// Email import summary for workflow
     /// </summary>
+    /// <summary>
+    /// Email import summary for workflow
+    /// </summary>
     public class EmailImportSummary
     {
         public int TotalEmails { get; set; }
@@ -59,8 +62,8 @@ namespace Mkg_Elcotec_Automation.Models.EmailModels
         public List<EmailDetail> EmailDetails { get; set; } = new List<EmailDetail>();
         public List<SkippedEmailDetail> SkippedEmails { get; set; } = new List<SkippedEmailDetail>();
 
-        // ✅ FIXED: Add separate list for duplicate emails
-        public List<SkippedEmailDetail> DuplicateEmails { get; set; } = new List<SkippedEmailDetail>();
+        // ✅ FIXED: Add separate list for duplicate emails (now using DuplicateEmailDetail type)
+        public List<DuplicateEmailDetail> DuplicateEmails { get; set; } = new List<DuplicateEmailDetail>();
 
         public int SkippedEmailsCount => SkippedEmails?.Count ?? 0;
         // ✅ FIXED: Property for duplicate count
@@ -83,7 +86,6 @@ namespace Mkg_Elcotec_Automation.Models.EmailModels
                    $"Revisions: {TotalRevisionsExtracted}";
         }
     }
-
     public class SkippedEmailDetail
     {
         public string Subject { get; set; }
@@ -94,6 +96,23 @@ namespace Mkg_Elcotec_Automation.Models.EmailModels
         public DateTime ReceivedDate { get; internal set; }
         public string ClientDomain { get; internal set; }
         public string SkipReason { get; internal set; }
+    }
+
+    /// <summary>
+    /// Detail for duplicate emails detected during workflow processing
+    /// </summary>
+    public class DuplicateEmailDetail
+    {
+        public string Subject { get; set; }
+        public string Reason { get; set; }
+        public DateTime ProcessedAt { get; set; }
+        public string Sender { get; set; }
+        public string Domain { get; set; }
+        public DateTime ReceivedDate { get; internal set; }
+        public string ClientDomain { get; internal set; }
+        public string DuplicateReason { get; internal set; } // Renamed from SkipReason for clarity
+        public string OriginalEmailId { get; set; } // ID of the original email this duplicate matches
+        public string DuplicateDetectionMethod { get; set; } // e.g., "Subject and Date Match" or "Hash Comparison"
     }
 
     /// <summary>

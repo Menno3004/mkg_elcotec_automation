@@ -804,8 +804,6 @@ namespace Mkg_Elcotec_Automation.Controllers
         private List<string> ValidateOrderBusinessRules(OrderLine order)
         {
             var errors = new List<string>();
-            if (order.ArtiCode?.Contains("897.102.305") == true)
-                errors.Add("FORCED TEST: Business rule violation for demo");
 
             // Business Rule 1: Quantity must be positive
             if (decimal.TryParse(order.Quantity, out decimal qty) && qty <= 0)

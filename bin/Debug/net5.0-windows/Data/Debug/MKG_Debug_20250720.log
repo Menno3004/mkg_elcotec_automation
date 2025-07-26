@@ -1,0 +1,1262 @@
+[12:05:51.852] [SYSTEM] === DEBUG LOGGING SYSTEM INITIALIZED ===
+[12:05:51.861] [SYSTEM] Debug logs directory: C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\bin\Debug\net5.0-windows\Data\Debug
+[12:05:51.861] [SYSTEM] Timestamp: 2025-07-20 12:05:51
+[12:05:51.861] [SYSTEM] 
+[12:05:51.861] [ORDER] 
+[12:05:51.862] [ORDER] === MKG ORDER INJECTION STARTED ===
+[12:05:51.862] [ORDER] 🔄 Starting MKG order injection for 29 OrderLines
+[12:05:51.862] [ORDER] 🔄 Debug log file: C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\bin\Debug\net5.0-windows\Logs\MKG_OrderController_Debug_20250720_120551.log
+[12:05:51.862] [ORDER] 
+[12:05:51.862] [ORDER] === FILTERING AND GROUPING ORDER LINES ===
+[12:05:51.863] [ORDER] 🔄 FILTERING: Starting filter of 29 order lines
+[12:05:51.863] [ORDER] 🔄 FILTERING: Filtered out 11 invalid order lines
+[12:05:51.863] [ORDER] 🔄 FILTERING: 18 valid order lines remaining
+[12:05:51.864] [ORDER] 🔄 FILTERING: Invalid order lines filtered:
+[12:05:51.864] [ORDER]    ❌ Filtered: '891.044.0153' (PO: ) - Reason: Invalid format
+[12:05:51.864] [ORDER]    ❌ Filtered: 'NUMBER' (PO: PO-4501530035) - Reason: Invalid format
+[12:05:51.864] [ORDER]    ❌ Filtered: 'UNKNOWN-ARTICLE-072050' (PO: PO-4501530035) - Reason: Invalid format
+[12:05:51.864] [ORDER]    ❌ Filtered: 'QUOTE-ITEM-120550' (PO: ) - Reason: Invalid format
+[12:05:51.864] [ORDER]    ❌ Filtered: 'UNKNOWN-ARTICLE-072050' (PO: PO-UNKNOWN--202507201205) - Reason: Invalid format
+[12:05:51.864] [ORDER]    ❌ Filtered: '815.011.781' (PO: ) - Reason: Invalid format
+[12:05:51.865] [ORDER]    ❌ Filtered: '891.50.18.196' (PO: ) - Reason: Invalid format
+[12:05:51.865] [ORDER]    ❌ Filtered: '897.010.1152' (PO: ) - Reason: Invalid format
+[12:05:51.865] [ORDER]    ❌ Filtered: 'NUMBER' (PO: PO-4501529782) - Reason: Invalid format
+[12:05:51.865] [ORDER]    ❌ Filtered: 'UNKNOWN-ARTICLE-072050' (PO: PO-7000368863) - Reason: Invalid format
+[12:05:51.865] [ORDER]    ❌ Filtered: 'QUOTE-ITEM-120550' (PO: ) - Reason: Invalid format
+[12:05:51.865] [ORDER] 📦 Original OrderLines: 29
+[12:05:51.865] [ORDER] 📦 Valid OrderLines after filtering: 18
+[12:05:51.865] [ORDER] 📦 Grouped into 8 Order Headers
+[12:05:51.865] [ORDER] 📦 PO Group: 'PO-4501530035' contains 2 lines:
+[12:05:51.865] [ORDER]    └── Article: 891.044.0153DELIVER | Desc: Weir Minerals Netherlands Purchase Order #4501530035 | Qty: 1
+[12:05:51.865] [ORDER]    └── Article: 891.044.0153A1 | Desc: Weir Minerals Netherlands Purchase Order #4501530035 | Qty: 1
+[12:05:51.866] [ORDER] 📦 PO Group: 'PO-891.75.6-202507201205' contains 1 lines:
+[12:05:51.866] [ORDER]    └── Article: 891.75.61 | Desc: RFQ 6x 891.75.61.000 & 6x 891.75.61.001 | Qty: 1
+[12:05:51.866] [ORDER] 📦 PO Group: 'PO-4501529782' contains 6 lines:
+[12:05:51.866] [ORDER]    └── Article: 815.011.781 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:05:51.866] [ORDER]    └── Article: 897.102.114DELIVER | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:05:51.866] [ORDER]    └── Article: RAL1003 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:05:51.866] [ORDER]    └── Article: 891.50.18 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:05:51.866] [ORDER]    └── Article: 897.010.1152 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:05:51.866] [ORDER]    └── Article: 891.50.18.196 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:05:51.866] [ORDER] 📦 PO Group: 'PO-891.75.0-202507201205' contains 5 lines:
+[12:05:51.866] [ORDER]    └── Article: 891.75.01 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:05:51.866] [ORDER]    └── Article: 891.75.02 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:05:51.867] [ORDER]    └── Article: 891.75.03 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:05:51.867] [ORDER]    └── Article: 891.75.04 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:05:51.867] [ORDER]    └── Article: 891.75.02.000A1 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:05:51.867] [ORDER] 📦 PO Group: 'PO-IPE140-202507201205' contains 1 lines:
+[12:05:51.867] [ORDER]    └── Article: IPE140 | Desc: Antw. 17-07, FW: Offerte aanvraag support constructies project Lubaszka | Qty: 1
+[12:05:51.867] [ORDER] 📦 PO Group: 'PO-IPE180-202507201205' contains 1 lines:
+[12:05:51.867] [ORDER]    └── Article: IPE180 | Desc: Antw. 17-07, FW: Offerte aanvraag support constructies project Lubaszka | Qty: 1
+[12:05:51.868] [ORDER] 📦 PO Group: 'PO-RAL9006-202507201205' contains 1 lines:
+[12:05:51.868] [ORDER]    └── Article: RAL9006 | Desc: Antw. 17-07, FW: Offerte aanvraag support constructies project Lubaszka | Qty: 1
+[12:05:51.868] [ORDER] 📦 PO Group: 'PO-WRD0000-202507201205' contains 1 lines:
+[12:05:51.868] [ORDER]    └── Article: WRD0000 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:05:51.868] [ORDER] 
+[12:05:51.868] [ORDER] === PROCESSING PO: PO-4501530035 ===
+[12:05:51.868] [ORDER] 🔄 Processing PO: PO-4501530035 with 2 OrderLines
+[12:05:51.868] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-4501530035
+[12:05:51.870] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-4501530035'
+[12:05:51.870] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:05:51.870] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-4501530035
+[12:05:51.870] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-4501530035&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:52.198] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-4501530035' failed: Response status code does not indicate success: 404 ().
+[12:05:52.198] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-4501530035
+[12:05:52.199] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-4501530035&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:52.273] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-4501530035' failed: Response status code does not indicate success: 404 ().
+[12:05:52.273] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-4501530035*
+[12:05:52.273] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-4501530035%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:52.350] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-4501530035*' failed: Response status code does not indicate success: 404 ().
+[12:05:52.350] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-4501530035'
+[12:05:52.351] [ORDER] ✅ PO CHECK: PO 'PO-4501530035' is unique, proceeding with injection
+[12:05:52.351] [ORDER] 
+[12:05:52.351] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:05:52.351] [ORDER] 🔍 ARTICLE CHECK: Checking 2 articles for existing duplicates...
+[12:05:52.351] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.044.0153DELIVER' in PO 'PO-4501530035'
+[12:05:52.352] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.044.0153DELIVER'
+[12:05:52.352] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.044.0153DELIVER&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:52.435] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:52.491] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:52.491] [ORDER] ✅ ARTICLE CHECK: Article '891.044.0153DELIVER' is unique in MKG system
+[12:05:52.491] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.044.0153A1' in PO 'PO-4501530035'
+[12:05:52.491] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.044.0153A1'
+[12:05:52.492] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.044.0153A1&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:52.569] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:52.570] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:52.570] [ORDER] ✅ ARTICLE CHECK: Article '891.044.0153A1' is unique in MKG system
+[12:05:52.570] [ORDER] 
+[12:05:52.570] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-4501530035 ===
+[12:05:52.570] [ORDER] 🔄 Creating MKG Order Header for PO: PO-4501530035 with 2 lines
+[12:05:52.571] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-4501530035
+[12:05:52.673] [ORDER] ✅ HEADER: Mock order header created: E20250720120552887
+[12:05:52.674] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120552887 created successfully
+[12:05:52.674] [ORDER] 🔄 ORDER LINES: Now injecting 2 order lines...
+[12:05:52.674] [ORDER] 
+[12:05:52.674] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120552887 ===
+[12:05:52.674] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.044.0153DELIVER'
+[12:05:52.674] [ORDER] 🔄 LINE: Injecting order line 891.044.0153DELIVER into order E20250720120552887
+[12:05:52.782] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:52.783] [ORDER] ✅ LINE SUCCESS: OrderLine '891.044.0153DELIVER' injected successfully
+[12:05:52.998] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.044.0153A1'
+[12:05:52.998] [ORDER] 🔄 LINE: Injecting order line 891.044.0153A1 into order E20250720120552887
+[12:05:53.123] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:53.124] [ORDER] ✅ LINE SUCCESS: OrderLine '891.044.0153A1' injected successfully
+[12:05:53.338] [ORDER] ✅ PO COMPLETED: PO 'PO-4501530035' injection completed
+[12:05:53.339] [ORDER] 
+[12:05:53.339] [ORDER] === PROCESSING PO: PO-891.75.6-202507201205 ===
+[12:05:53.339] [ORDER] 🔄 Processing PO: PO-891.75.6-202507201205 with 1 OrderLines
+[12:05:53.339] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-891.75.6-202507201205
+[12:05:53.340] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-891.75.6-202507201205'
+[12:05:53.341] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:05:53.341] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-891.75.6-202507201205
+[12:05:53.341] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-891.75.6-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:53.426] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-891.75.6-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:05:53.426] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-891.75.6-202507201205
+[12:05:53.427] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-891.75.6-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:53.518] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-891.75.6-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:05:53.518] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-891.75.6-202507201205*
+[12:05:53.518] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-891.75.6-202507201205%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:53.597] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-891.75.6-202507201205*' failed: Response status code does not indicate success: 404 ().
+[12:05:53.597] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-891.75.6-202507201205'
+[12:05:53.597] [ORDER] ✅ PO CHECK: PO 'PO-891.75.6-202507201205' is unique, proceeding with injection
+[12:05:53.598] [ORDER] 
+[12:05:53.598] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:05:53.598] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:05:53.598] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.61' in PO 'PO-891.75.6-202507201205'
+[12:05:53.598] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.61'
+[12:05:53.598] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.61&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:53.680] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:53.681] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:53.681] [ORDER] ✅ ARTICLE CHECK: Article '891.75.61' is unique in MKG system
+[12:05:53.681] [ORDER] 
+[12:05:53.681] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-891.75.6-202507201205 ===
+[12:05:53.681] [ORDER] 🔄 Creating MKG Order Header for PO: PO-891.75.6-202507201205 with 1 lines
+[12:05:53.681] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-891.75.6-202507201205
+[12:05:53.787] [ORDER] ✅ HEADER: Mock order header created: E20250720120553574
+[12:05:53.788] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120553574 created successfully
+[12:05:53.788] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:05:53.789] [ORDER] 
+[12:05:53.790] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120553574 ===
+[12:05:53.790] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.61'
+[12:05:53.791] [ORDER] 🔄 LINE: Injecting order line 891.75.61 into order E20250720120553574
+[12:05:53.895] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:53.896] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.61' injected successfully
+[12:05:54.113] [ORDER] ✅ PO COMPLETED: PO 'PO-891.75.6-202507201205' injection completed
+[12:05:54.114] [ORDER] 
+[12:05:54.114] [ORDER] === PROCESSING PO: PO-4501529782 ===
+[12:05:54.114] [ORDER] 🔄 Processing PO: PO-4501529782 with 6 OrderLines
+[12:05:54.115] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-4501529782
+[12:05:54.115] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-4501529782'
+[12:05:54.116] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:05:54.117] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-4501529782
+[12:05:54.118] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-4501529782&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:54.203] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-4501529782' failed: Response status code does not indicate success: 404 ().
+[12:05:54.203] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-4501529782
+[12:05:54.203] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-4501529782&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:54.280] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-4501529782' failed: Response status code does not indicate success: 404 ().
+[12:05:54.280] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-4501529782*
+[12:05:54.281] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-4501529782%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:54.356] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-4501529782*' failed: Response status code does not indicate success: 404 ().
+[12:05:54.356] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-4501529782'
+[12:05:54.357] [ORDER] ✅ PO CHECK: PO 'PO-4501529782' is unique, proceeding with injection
+[12:05:54.357] [ORDER] 
+[12:05:54.357] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:05:54.357] [ORDER] 🔍 ARTICLE CHECK: Checking 6 articles for existing duplicates...
+[12:05:54.357] [ORDER] 🔍 ARTICLE CHECK: Checking article '815.011.781' in PO 'PO-4501529782'
+[12:05:54.357] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '815.011.781'
+[12:05:54.357] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D815.011.781&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:54.434] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:54.434] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:54.434] [ORDER] ✅ ARTICLE CHECK: Article '815.011.781' is unique in MKG system
+[12:05:54.434] [ORDER] 🔍 ARTICLE CHECK: Checking article '897.102.114DELIVER' in PO 'PO-4501529782'
+[12:05:54.435] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '897.102.114DELIVER'
+[12:05:54.435] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D897.102.114DELIVER&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:54.514] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:54.515] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:54.515] [ORDER] ✅ ARTICLE CHECK: Article '897.102.114DELIVER' is unique in MKG system
+[12:05:54.515] [ORDER] 🔍 ARTICLE CHECK: Checking article 'RAL1003' in PO 'PO-4501529782'
+[12:05:54.515] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'RAL1003'
+[12:05:54.515] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DRAL1003&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:54.592] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:54.592] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:54.592] [ORDER] ✅ ARTICLE CHECK: Article 'RAL1003' is unique in MKG system
+[12:05:54.592] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.50.18' in PO 'PO-4501529782'
+[12:05:54.593] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.50.18'
+[12:05:54.593] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.50.18&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:54.677] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:54.677] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:54.677] [ORDER] ✅ ARTICLE CHECK: Article '891.50.18' is unique in MKG system
+[12:05:54.678] [ORDER] 🔍 ARTICLE CHECK: Checking article '897.010.1152' in PO 'PO-4501529782'
+[12:05:54.678] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '897.010.1152'
+[12:05:54.678] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D897.010.1152&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:54.757] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:54.757] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:54.757] [ORDER] ✅ ARTICLE CHECK: Article '897.010.1152' is unique in MKG system
+[12:05:54.757] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.50.18.196' in PO 'PO-4501529782'
+[12:05:54.758] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.50.18.196'
+[12:05:54.758] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.50.18.196&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:54.834] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:54.834] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:54.834] [ORDER] ✅ ARTICLE CHECK: Article '891.50.18.196' is unique in MKG system
+[12:05:54.835] [ORDER] 
+[12:05:54.835] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-4501529782 ===
+[12:05:54.835] [ORDER] 🔄 Creating MKG Order Header for PO: PO-4501529782 with 6 lines
+[12:05:54.835] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-4501529782
+[12:05:54.947] [ORDER] ✅ HEADER: Mock order header created: E20250720120554677
+[12:05:54.947] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120554677 created successfully
+[12:05:54.947] [ORDER] 🔄 ORDER LINES: Now injecting 6 order lines...
+[12:05:54.947] [ORDER] 
+[12:05:54.947] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120554677 ===
+[12:05:54.948] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '815.011.781'
+[12:05:54.948] [ORDER] 🔄 LINE: Injecting order line 815.011.781 into order E20250720120554677
+[12:05:55.057] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:55.057] [ORDER] ✅ LINE SUCCESS: OrderLine '815.011.781' injected successfully
+[12:05:55.261] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '897.102.114DELIVER'
+[12:05:55.261] [ORDER] 🔄 LINE: Injecting order line 897.102.114DELIVER into order E20250720120554677
+[12:05:55.370] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:55.371] [ORDER] ✅ LINE SUCCESS: OrderLine '897.102.114DELIVER' injected successfully
+[12:05:55.573] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'RAL1003'
+[12:05:55.574] [ORDER] 🔄 LINE: Injecting order line RAL1003 into order E20250720120554677
+[12:05:55.681] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:55.681] [ORDER] ✅ LINE SUCCESS: OrderLine 'RAL1003' injected successfully
+[12:05:55.883] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.50.18'
+[12:05:55.883] [ORDER] 🔄 LINE: Injecting order line 891.50.18 into order E20250720120554677
+[12:05:55.993] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:55.994] [ORDER] ✅ LINE SUCCESS: OrderLine '891.50.18' injected successfully
+[12:05:56.195] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '897.010.1152'
+[12:05:56.196] [ORDER] 🔄 LINE: Injecting order line 897.010.1152 into order E20250720120554677
+[12:05:56.306] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:56.307] [ORDER] ✅ LINE SUCCESS: OrderLine '897.010.1152' injected successfully
+[12:05:56.508] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.50.18.196'
+[12:05:56.509] [ORDER] 🔄 LINE: Injecting order line 891.50.18.196 into order E20250720120554677
+[12:05:56.617] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:56.617] [ORDER] ✅ LINE SUCCESS: OrderLine '891.50.18.196' injected successfully
+[12:05:56.832] [ORDER] ✅ PO COMPLETED: PO 'PO-4501529782' injection completed
+[12:05:56.832] [ORDER] 
+[12:05:56.832] [ORDER] === PROCESSING PO: PO-891.75.0-202507201205 ===
+[12:05:56.832] [ORDER] 🔄 Processing PO: PO-891.75.0-202507201205 with 5 OrderLines
+[12:05:56.832] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-891.75.0-202507201205
+[12:05:56.833] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-891.75.0-202507201205'
+[12:05:56.833] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:05:56.833] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-891.75.0-202507201205
+[12:05:56.833] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-891.75.0-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:56.905] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-891.75.0-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:05:56.906] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-891.75.0-202507201205
+[12:05:56.906] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-891.75.0-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:56.979] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-891.75.0-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:05:56.979] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-891.75.0-202507201205*
+[12:05:56.979] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-891.75.0-202507201205%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:57.058] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-891.75.0-202507201205*' failed: Response status code does not indicate success: 404 ().
+[12:05:57.059] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-891.75.0-202507201205'
+[12:05:57.059] [ORDER] ✅ PO CHECK: PO 'PO-891.75.0-202507201205' is unique, proceeding with injection
+[12:05:57.059] [ORDER] 
+[12:05:57.059] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:05:57.059] [ORDER] 🔍 ARTICLE CHECK: Checking 5 articles for existing duplicates...
+[12:05:57.059] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.01' in PO 'PO-891.75.0-202507201205'
+[12:05:57.059] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.01'
+[12:05:57.059] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.01&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:57.138] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:57.139] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:57.139] [ORDER] ✅ ARTICLE CHECK: Article '891.75.01' is unique in MKG system
+[12:05:57.139] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.02' in PO 'PO-891.75.0-202507201205'
+[12:05:57.139] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.02'
+[12:05:57.140] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.02&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:57.214] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:57.215] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:57.215] [ORDER] ✅ ARTICLE CHECK: Article '891.75.02' is unique in MKG system
+[12:05:57.215] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.03' in PO 'PO-891.75.0-202507201205'
+[12:05:57.215] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.03'
+[12:05:57.215] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.03&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:57.288] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:57.289] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:57.289] [ORDER] ✅ ARTICLE CHECK: Article '891.75.03' is unique in MKG system
+[12:05:57.289] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.04' in PO 'PO-891.75.0-202507201205'
+[12:05:57.289] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.04'
+[12:05:57.289] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.04&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:57.368] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:57.368] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:57.368] [ORDER] ✅ ARTICLE CHECK: Article '891.75.04' is unique in MKG system
+[12:05:57.368] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.02.000A1' in PO 'PO-891.75.0-202507201205'
+[12:05:57.368] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.02.000A1'
+[12:05:57.369] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.02.000A1&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:57.446] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:57.447] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:57.447] [ORDER] ✅ ARTICLE CHECK: Article '891.75.02.000A1' is unique in MKG system
+[12:05:57.447] [ORDER] 
+[12:05:57.447] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-891.75.0-202507201205 ===
+[12:05:57.447] [ORDER] 🔄 Creating MKG Order Header for PO: PO-891.75.0-202507201205 with 5 lines
+[12:05:57.447] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-891.75.0-202507201205
+[12:05:57.562] [ORDER] ✅ HEADER: Mock order header created: E20250720120557927
+[12:05:57.563] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120557927 created successfully
+[12:05:57.563] [ORDER] 🔄 ORDER LINES: Now injecting 5 order lines...
+[12:05:57.563] [ORDER] 
+[12:05:57.563] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120557927 ===
+[12:05:57.563] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.01'
+[12:05:57.564] [ORDER] 🔄 LINE: Injecting order line 891.75.01 into order E20250720120557927
+[12:05:57.671] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:57.671] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.01' injected successfully
+[12:05:57.875] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.02'
+[12:05:57.875] [ORDER] 🔄 LINE: Injecting order line 891.75.02 into order E20250720120557927
+[12:05:57.983] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:57.984] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.02' injected successfully
+[12:05:58.200] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.03'
+[12:05:58.201] [ORDER] 🔄 LINE: Injecting order line 891.75.03 into order E20250720120557927
+[12:05:58.308] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:58.308] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.03' injected successfully
+[12:05:58.508] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.04'
+[12:05:58.511] [ORDER] 🔄 LINE: Injecting order line 891.75.04 into order E20250720120557927
+[12:05:58.617] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:58.617] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.04' injected successfully
+[12:05:58.819] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.02.000A1'
+[12:05:58.819] [ORDER] 🔄 LINE: Injecting order line 891.75.02.000A1 into order E20250720120557927
+[12:05:58.929] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:58.930] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.02.000A1' injected successfully
+[12:05:59.131] [ORDER] ✅ PO COMPLETED: PO 'PO-891.75.0-202507201205' injection completed
+[12:05:59.131] [ORDER] 
+[12:05:59.132] [ORDER] === PROCESSING PO: PO-IPE140-202507201205 ===
+[12:05:59.132] [ORDER] 🔄 Processing PO: PO-IPE140-202507201205 with 1 OrderLines
+[12:05:59.132] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-IPE140-202507201205
+[12:05:59.132] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-IPE140-202507201205'
+[12:05:59.132] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:05:59.133] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-IPE140-202507201205
+[12:05:59.133] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-IPE140-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:59.220] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-IPE140-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:05:59.220] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-IPE140-202507201205
+[12:05:59.220] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-IPE140-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:59.302] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-IPE140-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:05:59.303] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-IPE140-202507201205*
+[12:05:59.303] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-IPE140-202507201205%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:59.386] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-IPE140-202507201205*' failed: Response status code does not indicate success: 404 ().
+[12:05:59.386] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-IPE140-202507201205'
+[12:05:59.387] [ORDER] ✅ PO CHECK: PO 'PO-IPE140-202507201205' is unique, proceeding with injection
+[12:05:59.387] [ORDER] 
+[12:05:59.387] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:05:59.387] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:05:59.387] [ORDER] 🔍 ARTICLE CHECK: Checking article 'IPE140' in PO 'PO-IPE140-202507201205'
+[12:05:59.387] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'IPE140'
+[12:05:59.387] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DIPE140&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:05:59.462] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:05:59.462] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:05:59.462] [ORDER] ✅ ARTICLE CHECK: Article 'IPE140' is unique in MKG system
+[12:05:59.463] [ORDER] 
+[12:05:59.463] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-IPE140-202507201205 ===
+[12:05:59.463] [ORDER] 🔄 Creating MKG Order Header for PO: PO-IPE140-202507201205 with 1 lines
+[12:05:59.463] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-IPE140-202507201205
+[12:05:59.564] [ORDER] ✅ HEADER: Mock order header created: E20250720120559879
+[12:05:59.564] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120559879 created successfully
+[12:05:59.564] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:05:59.564] [ORDER] 
+[12:05:59.565] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120559879 ===
+[12:05:59.565] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'IPE140'
+[12:05:59.566] [ORDER] 🔄 LINE: Injecting order line IPE140 into order E20250720120559879
+[12:05:59.673] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:05:59.674] [ORDER] ✅ LINE SUCCESS: OrderLine 'IPE140' injected successfully
+[12:05:59.890] [ORDER] ✅ PO COMPLETED: PO 'PO-IPE140-202507201205' injection completed
+[12:05:59.891] [ORDER] 
+[12:05:59.891] [ORDER] === PROCESSING PO: PO-IPE180-202507201205 ===
+[12:05:59.892] [ORDER] 🔄 Processing PO: PO-IPE180-202507201205 with 1 OrderLines
+[12:05:59.893] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-IPE180-202507201205
+[12:05:59.893] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-IPE180-202507201205'
+[12:05:59.894] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:05:59.895] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-IPE180-202507201205
+[12:05:59.897] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-IPE180-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:05:59.983] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-IPE180-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:05:59.983] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-IPE180-202507201205
+[12:05:59.983] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-IPE180-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:06:00.074] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-IPE180-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:06:00.075] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-IPE180-202507201205*
+[12:06:00.075] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-IPE180-202507201205%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:06:00.158] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-IPE180-202507201205*' failed: Response status code does not indicate success: 404 ().
+[12:06:00.158] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-IPE180-202507201205'
+[12:06:00.158] [ORDER] ✅ PO CHECK: PO 'PO-IPE180-202507201205' is unique, proceeding with injection
+[12:06:00.158] [ORDER] 
+[12:06:00.158] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:06:00.158] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:06:00.158] [ORDER] 🔍 ARTICLE CHECK: Checking article 'IPE180' in PO 'PO-IPE180-202507201205'
+[12:06:00.158] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'IPE180'
+[12:06:00.159] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DIPE180&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:06:00.235] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:06:00.236] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:06:00.236] [ORDER] ✅ ARTICLE CHECK: Article 'IPE180' is unique in MKG system
+[12:06:00.236] [ORDER] 
+[12:06:00.236] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-IPE180-202507201205 ===
+[12:06:00.236] [ORDER] 🔄 Creating MKG Order Header for PO: PO-IPE180-202507201205 with 1 lines
+[12:06:00.237] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-IPE180-202507201205
+[12:06:00.354] [ORDER] ✅ HEADER: Mock order header created: E20250720120600170
+[12:06:00.355] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120600170 created successfully
+[12:06:00.356] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:06:00.356] [ORDER] 
+[12:06:00.357] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120600170 ===
+[12:06:00.357] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'IPE180'
+[12:06:00.358] [ORDER] 🔄 LINE: Injecting order line IPE180 into order E20250720120600170
+[12:06:00.478] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:06:00.479] [ORDER] ✅ LINE SUCCESS: OrderLine 'IPE180' injected successfully
+[12:06:00.681] [ORDER] ✅ PO COMPLETED: PO 'PO-IPE180-202507201205' injection completed
+[12:06:00.681] [ORDER] 
+[12:06:00.681] [ORDER] === PROCESSING PO: PO-RAL9006-202507201205 ===
+[12:06:00.681] [ORDER] 🔄 Processing PO: PO-RAL9006-202507201205 with 1 OrderLines
+[12:06:00.681] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-RAL9006-202507201205
+[12:06:00.681] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-RAL9006-202507201205'
+[12:06:00.681] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:06:00.681] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-RAL9006-202507201205
+[12:06:00.682] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-RAL9006-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:06:00.754] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-RAL9006-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:06:00.754] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-RAL9006-202507201205
+[12:06:00.754] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-RAL9006-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:06:00.826] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-RAL9006-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:06:00.826] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-RAL9006-202507201205*
+[12:06:00.826] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-RAL9006-202507201205%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:06:00.904] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-RAL9006-202507201205*' failed: Response status code does not indicate success: 404 ().
+[12:06:00.905] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-RAL9006-202507201205'
+[12:06:00.905] [ORDER] ✅ PO CHECK: PO 'PO-RAL9006-202507201205' is unique, proceeding with injection
+[12:06:00.905] [ORDER] 
+[12:06:00.905] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:06:00.905] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:06:00.905] [ORDER] 🔍 ARTICLE CHECK: Checking article 'RAL9006' in PO 'PO-RAL9006-202507201205'
+[12:06:00.905] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'RAL9006'
+[12:06:00.905] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DRAL9006&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:06:00.976] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:06:00.977] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:06:00.977] [ORDER] ✅ ARTICLE CHECK: Article 'RAL9006' is unique in MKG system
+[12:06:00.977] [ORDER] 
+[12:06:00.977] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-RAL9006-202507201205 ===
+[12:06:00.977] [ORDER] 🔄 Creating MKG Order Header for PO: PO-RAL9006-202507201205 with 1 lines
+[12:06:00.977] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-RAL9006-202507201205
+[12:06:01.084] [ORDER] ✅ HEADER: Mock order header created: E20250720120601306
+[12:06:01.085] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120601306 created successfully
+[12:06:01.086] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:06:01.087] [ORDER] 
+[12:06:01.088] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120601306 ===
+[12:06:01.088] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'RAL9006'
+[12:06:01.089] [ORDER] 🔄 LINE: Injecting order line RAL9006 into order E20250720120601306
+[12:06:01.193] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:06:01.194] [ORDER] ✅ LINE SUCCESS: OrderLine 'RAL9006' injected successfully
+[12:06:01.409] [ORDER] ✅ PO COMPLETED: PO 'PO-RAL9006-202507201205' injection completed
+[12:06:01.409] [ORDER] 
+[12:06:01.409] [ORDER] === PROCESSING PO: PO-WRD0000-202507201205 ===
+[12:06:01.409] [ORDER] 🔄 Processing PO: PO-WRD0000-202507201205 with 1 OrderLines
+[12:06:01.409] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-WRD0000-202507201205
+[12:06:01.409] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-WRD0000-202507201205'
+[12:06:01.410] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:06:01.410] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-WRD0000-202507201205
+[12:06:01.410] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-WRD0000-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:06:01.481] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-WRD0000-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:06:01.481] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-WRD0000-202507201205
+[12:06:01.481] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-WRD0000-202507201205&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:06:01.555] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-WRD0000-202507201205' failed: Response status code does not indicate success: 404 ().
+[12:06:01.555] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-WRD0000-202507201205*
+[12:06:01.555] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-WRD0000-202507201205%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:06:01.628] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-WRD0000-202507201205*' failed: Response status code does not indicate success: 404 ().
+[12:06:01.628] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-WRD0000-202507201205'
+[12:06:01.628] [ORDER] ✅ PO CHECK: PO 'PO-WRD0000-202507201205' is unique, proceeding with injection
+[12:06:01.628] [ORDER] 
+[12:06:01.628] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:06:01.628] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:06:01.628] [ORDER] 🔍 ARTICLE CHECK: Checking article 'WRD0000' in PO 'PO-WRD0000-202507201205'
+[12:06:01.629] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'WRD0000'
+[12:06:01.629] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DWRD0000&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:06:01.706] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:06:01.706] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:06:01.706] [ORDER] ✅ ARTICLE CHECK: Article 'WRD0000' is unique in MKG system
+[12:06:01.706] [ORDER] 
+[12:06:01.706] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-WRD0000-202507201205 ===
+[12:06:01.707] [ORDER] 🔄 Creating MKG Order Header for PO: PO-WRD0000-202507201205 with 1 lines
+[12:06:01.707] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-WRD0000-202507201205
+[12:06:01.814] [ORDER] ✅ HEADER: Mock order header created: E20250720120601729
+[12:06:01.815] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120601729 created successfully
+[12:06:01.815] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:06:01.815] [ORDER] 
+[12:06:01.815] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120601729 ===
+[12:06:01.815] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'WRD0000'
+[12:06:01.815] [ORDER] 🔄 LINE: Injecting order line WRD0000 into order E20250720120601729
+[12:06:01.921] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:06:01.922] [ORDER] ✅ LINE SUCCESS: OrderLine 'WRD0000' injected successfully
+[12:06:02.137] [ORDER] ✅ PO COMPLETED: PO 'PO-WRD0000-202507201205' injection completed
+[12:06:02.138] [ORDER] 
+[12:06:02.138] [ORDER] === MKG ORDER INJECTION COMPLETED ===
+[12:06:02.139] [ORDER] 🏁 SUMMARY: MKG order injection completed
+[12:06:02.139] [ORDER] 🏁 SUMMARY: Successful injections: 18
+[12:06:02.139] [ORDER] 🏁 SUMMARY: Failed injections: 0
+[12:06:02.139] [ORDER] 🏁 SUMMARY: Duplicates filtered: 0
+[12:06:02.140] [ORDER] 🏁 SUMMARY: Processing time: 10,3 seconds
+[12:06:02.141] [ORDER] 🏁 SUMMARY: Total duplicates detected: 0
+[12:06:02.221] [QUOTE] 
+[12:06:02.221] [QUOTE] === MKG QUOTE INJECTION STARTED ===
+[12:06:02.221] [QUOTE] 🔄 Starting MKG quote injection for 2 QuoteLines
+[12:06:02.222] [QUOTE] 🔄 Debug log file: C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\bin\Debug\net5.0-windows\Data\Debug\MKG_Debug_20250720.log
+[12:06:02.222] [QUOTE] 
+[12:06:02.222] [QUOTE] === FILTERING AND GROUPING QUOTE LINES ===
+[12:06:02.222] [QUOTE] 🔄 FILTERING: Starting filter of 2 quote lines
+[12:06:02.223] [QUOTE] 🔄 FILTERING: Filtered out 0 invalid quote lines
+[12:06:02.223] [QUOTE] 🔄 FILTERING: 2 valid quote lines remaining
+[12:06:02.223] [QUOTE] 💰 Original QuoteLines: 2
+[12:06:02.223] [QUOTE] 💰 Valid QuoteLines after filtering: 2
+[12:06:02.223] [QUOTE] 💰 Grouped into 2 Quote Headers
+[12:06:02.223] [QUOTE] 💰 RFQ Group: 'RFQ-6' contains 1 lines:
+[12:06:02.223] [QUOTE]    └── Article: QUOTE-ITEM-120550 | Desc: Quote for QUOTE-ITEM-120550 | Price: €0.00
+[12:06:02.223] [QUOTE] 💰 RFQ Group: 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550' contains 1 lines:
+[12:06:02.223] [QUOTE]    └── Article: QUOTE-ITEM-120550 | Desc: Quote for QUOTE-ITEM-120550 | Price: €0.00
+[12:06:02.223] [QUOTE] 
+[12:06:02.224] [QUOTE] === PROCESSING RFQ: RFQ-6 ===
+[12:06:02.224] [QUOTE] 🔄 Processing RFQ: RFQ-6 with 1 QuoteLines
+[12:06:02.224] [QUOTE] 🔍 RFQ CHECK: Starting duplicate check for RFQ: RFQ-6
+[12:06:02.225] [QUOTE] 🔍 RFQ CHECK: Checking for existing RFQ: 'RFQ-6'
+[12:06:02.225] [QUOTE] 🔍 RFQ CHECK: API endpoint: Documents/vofh/1?Filter=vofh_ref_extern%3DRFQ-6&FieldList=vofh_num,vofh_ref_extern&NumRows=5
+[12:06:02.398] [QUOTE] ❌ ERROR: RFQ duplicate check failed for 'RFQ-6': Response status code does not indicate success: 404 ().
+[12:06:02.398] [QUOTE] Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgQuoteController.CheckForExistingRfq(String rfqNumber) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgQuoteController.cs:line 324
+[12:06:02.399] [QUOTE] ✅ RFQ CHECK: RFQ 'RFQ-6' is unique, proceeding with injection
+[12:06:02.399] [QUOTE] 
+[12:06:02.399] [QUOTE] === CREATING MKG QUOTE HEADER FOR RFQ: RFQ-6 ===
+[12:06:02.399] [QUOTE] 🔄 Creating MKG Quote Header for RFQ: RFQ-6 with 1 lines
+[12:06:02.400] [QUOTE] 🔄 Creating MKG Quote Header for RFQ: RFQ-6
+[12:06:02.483] [QUOTE] 📦 Quote Header data: {
+  "request": {
+    "InputData": {
+      "vofh": [
+        {
+          "admi_num": "1",
+          "debi_num": "30010",
+          "rela_num": "2",
+          "vofh_referentie": "RFQ-6",
+          "vofh_omschrijving": "Quote for RFQ: RFQ-6",
+          "vofh_datum": "2025-07-20",
+          "vofh_geldig_tot": "2025-08-19",
+          "vofh_status": "OPEN",
+          "vofh_prioriteit": "Normal",
+          "vofh_contact": "Default Customer",
+          "vofh_memo": "Auto-generated quote from email processing"
+        }
+      ]
+    }
+  }
+}
+[12:06:02.722] [QUOTE] 📥 MKG Quote Header Response: {"response":{"ResultData":[{"vofh":[{"RowKey":"0x00000000123f4a22","admi_num":1,"vofh_num":"E10250180","debi_num":"30010","rela_num":2}]}]}}
+[12:06:02.723] [QUOTE] ✅ HEADER CREATED: MKG Quote E10250180 created successfully
+[12:06:02.724] [QUOTE] 🔄 QUOTE LINES: Now injecting 1 quote lines...
+[12:06:02.724] [QUOTE] 
+[12:06:02.724] [QUOTE] === INJECTING QUOTE LINES FOR MKG QUOTE: E10250180 ===
+[12:06:02.724] [QUOTE] 🔄 LINE INJECTION: Processing QuoteLine 'QUOTE-ITEM-120550'
+[12:06:02.725] [QUOTE] 🔄 LINE: Injecting quote line QUOTE-ITEM-120550 into quote E10250180
+[12:06:02.839] [QUOTE] ✅ LINE: Mock quote line injected successfully
+[12:06:02.851] [QUOTE] ✅ LINE SUCCESS: QuoteLine 'QUOTE-ITEM-120550' injected successfully
+[12:06:03.058] [QUOTE] ✅ RFQ COMPLETED: RFQ 'RFQ-6' injection completed
+[12:06:03.058] [QUOTE] 
+[12:06:03.058] [QUOTE] === PROCESSING RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550 ===
+[12:06:03.058] [QUOTE] 🔄 Processing RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550 with 1 QuoteLines
+[12:06:03.058] [QUOTE] 🔍 RFQ CHECK: Starting duplicate check for RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550
+[12:06:03.059] [QUOTE] 🔍 RFQ CHECK: Checking for existing RFQ: 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550'
+[12:06:03.059] [QUOTE] 🔍 RFQ CHECK: API endpoint: Documents/vofh/1?Filter=vofh_ref_extern%3DRFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550&FieldList=vofh_num,vofh_ref_extern&NumRows=5
+[12:06:03.132] [QUOTE] ❌ ERROR: RFQ duplicate check failed for 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550': Response status code does not indicate success: 404 ().
+[12:06:03.133] [QUOTE] Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgQuoteController.CheckForExistingRfq(String rfqNumber) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgQuoteController.cs:line 324
+[12:06:03.133] [QUOTE] ✅ RFQ CHECK: RFQ 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550' is unique, proceeding with injection
+[12:06:03.133] [QUOTE] 
+[12:06:03.133] [QUOTE] === CREATING MKG QUOTE HEADER FOR RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550 ===
+[12:06:03.133] [QUOTE] 🔄 Creating MKG Quote Header for RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550 with 1 lines
+[12:06:03.134] [QUOTE] 🔄 Creating MKG Quote Header for RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550
+[12:06:03.195] [QUOTE] 📦 Quote Header data: {
+  "request": {
+    "InputData": {
+      "vofh": [
+        {
+          "admi_num": "1",
+          "debi_num": "30010",
+          "rela_num": "2",
+          "vofh_referentie": "RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550",
+          "vofh_omschrijving": "Quote for RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550",
+          "vofh_datum": "2025-07-20",
+          "vofh_geldig_tot": "2025-08-19",
+          "vofh_status": "OPEN",
+          "vofh_prioriteit": "Normal",
+          "vofh_contact": "Default Customer",
+          "vofh_memo": "Auto-generated quote from email processing"
+        }
+      ]
+    }
+  }
+}
+[12:06:03.376] [QUOTE] 📥 MKG Quote Header Response: {"response":{"ResultData":[{"vofh":[{"RowKey":"0x00000000123f4a23","admi_num":1,"vofh_num":"E10250181","debi_num":"30010","rela_num":2}]}]}}
+[12:06:03.377] [QUOTE] ✅ HEADER CREATED: MKG Quote E10250181 created successfully
+[12:06:03.377] [QUOTE] 🔄 QUOTE LINES: Now injecting 1 quote lines...
+[12:06:03.377] [QUOTE] 
+[12:06:03.377] [QUOTE] === INJECTING QUOTE LINES FOR MKG QUOTE: E10250181 ===
+[12:06:03.377] [QUOTE] 🔄 LINE INJECTION: Processing QuoteLine 'QUOTE-ITEM-120550'
+[12:06:03.377] [QUOTE] 🔄 LINE: Injecting quote line QUOTE-ITEM-120550 into quote E10250181
+[12:06:03.493] [QUOTE] ✅ LINE: Mock quote line injected successfully
+[12:06:03.493] [QUOTE] ✅ LINE SUCCESS: QuoteLine 'QUOTE-ITEM-120550' injected successfully
+[12:06:03.696] [QUOTE] ✅ RFQ COMPLETED: RFQ 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120550' injection completed
+[12:06:03.697] [QUOTE] 
+[12:06:03.697] [QUOTE] === MKG QUOTE INJECTION COMPLETED ===
+[12:06:03.698] [QUOTE] 🏁 SUMMARY: Quote injection completed
+[12:06:03.698] [QUOTE] 🏁 SUMMARY: Successful injections: 2
+[12:06:03.698] [QUOTE] 🏁 SUMMARY: Failed injections: 0
+[12:06:03.699] [QUOTE] 🏁 SUMMARY: Duplicates filtered: 0
+[12:06:03.700] [QUOTE] 🏁 SUMMARY: Processing time: 1,5 seconds
+[12:07:04.254] [ORDER] 
+[12:07:04.254] [ORDER] === MKG ORDER INJECTION STARTED ===
+[12:07:04.254] [ORDER] 🔄 Starting MKG order injection for 29 OrderLines
+[12:07:04.254] [ORDER] 🔄 Debug log file: C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\bin\Debug\net5.0-windows\Logs\MKG_OrderController_Debug_20250720_120551.log
+[12:07:04.255] [ORDER] 
+[12:07:04.255] [ORDER] === FILTERING AND GROUPING ORDER LINES ===
+[12:07:04.255] [ORDER] 🔄 FILTERING: Starting filter of 29 order lines
+[12:07:04.255] [ORDER] 🔄 FILTERING: Filtered out 11 invalid order lines
+[12:07:04.255] [ORDER] 🔄 FILTERING: 18 valid order lines remaining
+[12:07:04.255] [ORDER] 🔄 FILTERING: Invalid order lines filtered:
+[12:07:04.255] [ORDER]    ❌ Filtered: '891.044.0153' (PO: ) - Reason: Invalid format
+[12:07:04.256] [ORDER]    ❌ Filtered: 'NUMBER' (PO: PO-4501530035) - Reason: Invalid format
+[12:07:04.256] [ORDER]    ❌ Filtered: 'UNKNOWN-ARTICLE-072002' (PO: PO-4501530035) - Reason: Invalid format
+[12:07:04.256] [ORDER]    ❌ Filtered: 'QUOTE-ITEM-120702' (PO: ) - Reason: Invalid format
+[12:07:04.256] [ORDER]    ❌ Filtered: 'UNKNOWN-ARTICLE-072002' (PO: PO-UNKNOWN--202507201207) - Reason: Invalid format
+[12:07:04.257] [ORDER]    ❌ Filtered: '815.011.781' (PO: ) - Reason: Invalid format
+[12:07:04.257] [ORDER]    ❌ Filtered: '891.50.18.196' (PO: ) - Reason: Invalid format
+[12:07:04.257] [ORDER]    ❌ Filtered: '897.010.1152' (PO: ) - Reason: Invalid format
+[12:07:04.257] [ORDER]    ❌ Filtered: 'NUMBER' (PO: PO-4501529782) - Reason: Invalid format
+[12:07:04.257] [ORDER]    ❌ Filtered: 'UNKNOWN-ARTICLE-072003' (PO: PO-7000368863) - Reason: Invalid format
+[12:07:04.257] [ORDER]    ❌ Filtered: 'QUOTE-ITEM-120703' (PO: ) - Reason: Invalid format
+[12:07:04.257] [ORDER] 📦 Original OrderLines: 29
+[12:07:04.257] [ORDER] 📦 Valid OrderLines after filtering: 18
+[12:07:04.257] [ORDER] 📦 Grouped into 8 Order Headers
+[12:07:04.257] [ORDER] 📦 PO Group: 'PO-4501530035' contains 2 lines:
+[12:07:04.257] [ORDER]    └── Article: 891.044.0153DELIVER | Desc: Weir Minerals Netherlands Purchase Order #4501530035 | Qty: 1
+[12:07:04.257] [ORDER]    └── Article: 891.044.0153A1 | Desc: Weir Minerals Netherlands Purchase Order #4501530035 | Qty: 1
+[12:07:04.258] [ORDER] 📦 PO Group: 'PO-891.75.6-202507201207' contains 1 lines:
+[12:07:04.258] [ORDER]    └── Article: 891.75.61 | Desc: RFQ 6x 891.75.61.000 & 6x 891.75.61.001 | Qty: 1
+[12:07:04.258] [ORDER] 📦 PO Group: 'PO-4501529782' contains 6 lines:
+[12:07:04.258] [ORDER]    └── Article: 815.011.781 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:07:04.258] [ORDER]    └── Article: 897.102.114DELIVER | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:07:04.258] [ORDER]    └── Article: RAL1003 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:07:04.258] [ORDER]    └── Article: 891.50.18 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:07:04.258] [ORDER]    └── Article: 897.010.1152 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:07:04.258] [ORDER]    └── Article: 891.50.18.196 | Desc: Weir Minerals Netherlands Purchase Order #4501529782 | Qty: 1
+[12:07:04.258] [ORDER] 📦 PO Group: 'PO-891.75.0-202507201207' contains 5 lines:
+[12:07:04.258] [ORDER]    └── Article: 891.75.01 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:07:04.258] [ORDER]    └── Article: 891.75.02 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:07:04.258] [ORDER]    └── Article: 891.75.03 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:07:04.258] [ORDER]    └── Article: 891.75.04 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:07:04.258] [ORDER]    └── Article: 891.75.02.000A1 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:07:04.259] [ORDER] 📦 PO Group: 'PO-IPE140-202507201207' contains 1 lines:
+[12:07:04.259] [ORDER]    └── Article: IPE140 | Desc: Antw. 17-07, FW: Offerte aanvraag support constructies project Lubaszka | Qty: 1
+[12:07:04.259] [ORDER] 📦 PO Group: 'PO-IPE180-202507201207' contains 1 lines:
+[12:07:04.259] [ORDER]    └── Article: IPE180 | Desc: Antw. 17-07, FW: Offerte aanvraag support constructies project Lubaszka | Qty: 1
+[12:07:04.259] [ORDER] 📦 PO Group: 'PO-RAL9006-202507201207' contains 1 lines:
+[12:07:04.259] [ORDER]    └── Article: RAL9006 | Desc: Antw. 17-07, FW: Offerte aanvraag support constructies project Lubaszka | Qty: 1
+[12:07:04.259] [ORDER] 📦 PO Group: 'PO-WRD0000-202507201207' contains 1 lines:
+[12:07:04.259] [ORDER]    └── Article: WRD0000 | Desc: RE: [External] RE: 891.75.01.000A1 + 891.75.02.000A1 | Qty: 1
+[12:07:04.259] [ORDER] 
+[12:07:04.259] [ORDER] === PROCESSING PO: PO-4501530035 ===
+[12:07:04.259] [ORDER] 🔄 Processing PO: PO-4501530035 with 2 OrderLines
+[12:07:04.259] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-4501530035
+[12:07:04.259] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-4501530035'
+[12:07:04.259] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:07:04.259] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-4501530035
+[12:07:04.260] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-4501530035&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:04.420] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-4501530035' failed: Response status code does not indicate success: 404 ().
+[12:07:04.421] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-4501530035
+[12:07:04.421] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-4501530035&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:04.496] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-4501530035' failed: Response status code does not indicate success: 404 ().
+[12:07:04.496] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-4501530035*
+[12:07:04.496] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-4501530035%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:04.569] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-4501530035*' failed: Response status code does not indicate success: 404 ().
+[12:07:04.569] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-4501530035'
+[12:07:04.569] [ORDER] ✅ PO CHECK: PO 'PO-4501530035' is unique, proceeding with injection
+[12:07:04.569] [ORDER] 
+[12:07:04.569] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:07:04.570] [ORDER] 🔍 ARTICLE CHECK: Checking 2 articles for existing duplicates...
+[12:07:04.570] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.044.0153DELIVER' in PO 'PO-4501530035'
+[12:07:04.570] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.044.0153DELIVER'
+[12:07:04.570] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.044.0153DELIVER&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:04.655] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:04.656] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:04.656] [ORDER] ✅ ARTICLE CHECK: Article '891.044.0153DELIVER' is unique in MKG system
+[12:07:04.656] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.044.0153A1' in PO 'PO-4501530035'
+[12:07:04.656] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.044.0153A1'
+[12:07:04.656] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.044.0153A1&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:04.731] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:04.732] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:04.732] [ORDER] ✅ ARTICLE CHECK: Article '891.044.0153A1' is unique in MKG system
+[12:07:04.732] [ORDER] 
+[12:07:04.733] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-4501530035 ===
+[12:07:04.733] [ORDER] 🔄 Creating MKG Order Header for PO: PO-4501530035 with 2 lines
+[12:07:04.733] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-4501530035
+[12:07:04.844] [ORDER] ✅ HEADER: Mock order header created: E20250720120704900
+[12:07:04.844] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120704900 created successfully
+[12:07:04.845] [ORDER] 🔄 ORDER LINES: Now injecting 2 order lines...
+[12:07:04.845] [ORDER] 
+[12:07:04.845] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120704900 ===
+[12:07:04.846] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.044.0153DELIVER'
+[12:07:04.846] [ORDER] 🔄 LINE: Injecting order line 891.044.0153DELIVER into order E20250720120704900
+[12:07:04.953] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:04.953] [ORDER] ✅ LINE SUCCESS: OrderLine '891.044.0153DELIVER' injected successfully
+[12:07:05.169] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.044.0153A1'
+[12:07:05.169] [ORDER] 🔄 LINE: Injecting order line 891.044.0153A1 into order E20250720120704900
+[12:07:05.279] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:05.279] [ORDER] ✅ LINE SUCCESS: OrderLine '891.044.0153A1' injected successfully
+[12:07:05.494] [ORDER] ✅ PO COMPLETED: PO 'PO-4501530035' injection completed
+[12:07:05.494] [ORDER] 
+[12:07:05.494] [ORDER] === PROCESSING PO: PO-891.75.6-202507201207 ===
+[12:07:05.494] [ORDER] 🔄 Processing PO: PO-891.75.6-202507201207 with 1 OrderLines
+[12:07:05.494] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-891.75.6-202507201207
+[12:07:05.494] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-891.75.6-202507201207'
+[12:07:05.494] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:07:05.494] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-891.75.6-202507201207
+[12:07:05.495] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-891.75.6-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:05.566] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-891.75.6-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:05.566] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-891.75.6-202507201207
+[12:07:05.566] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-891.75.6-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:05.647] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-891.75.6-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:05.647] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-891.75.6-202507201207*
+[12:07:05.647] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-891.75.6-202507201207%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:05.743] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-891.75.6-202507201207*' failed: Response status code does not indicate success: 404 ().
+[12:07:05.744] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-891.75.6-202507201207'
+[12:07:05.744] [ORDER] ✅ PO CHECK: PO 'PO-891.75.6-202507201207' is unique, proceeding with injection
+[12:07:05.744] [ORDER] 
+[12:07:05.744] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:07:05.744] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:07:05.744] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.61' in PO 'PO-891.75.6-202507201207'
+[12:07:05.744] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.61'
+[12:07:05.744] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.61&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:05.828] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:05.829] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:05.829] [ORDER] ✅ ARTICLE CHECK: Article '891.75.61' is unique in MKG system
+[12:07:05.829] [ORDER] 
+[12:07:05.829] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-891.75.6-202507201207 ===
+[12:07:05.829] [ORDER] 🔄 Creating MKG Order Header for PO: PO-891.75.6-202507201207 with 1 lines
+[12:07:05.829] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-891.75.6-202507201207
+[12:07:05.947] [ORDER] ✅ HEADER: Mock order header created: E20250720120705133
+[12:07:05.947] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120705133 created successfully
+[12:07:05.948] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:07:05.948] [ORDER] 
+[12:07:05.948] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120705133 ===
+[12:07:05.948] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.61'
+[12:07:05.948] [ORDER] 🔄 LINE: Injecting order line 891.75.61 into order E20250720120705133
+[12:07:06.056] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:06.056] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.61' injected successfully
+[12:07:06.259] [ORDER] ✅ PO COMPLETED: PO 'PO-891.75.6-202507201207' injection completed
+[12:07:06.259] [ORDER] 
+[12:07:06.259] [ORDER] === PROCESSING PO: PO-4501529782 ===
+[12:07:06.260] [ORDER] 🔄 Processing PO: PO-4501529782 with 6 OrderLines
+[12:07:06.260] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-4501529782
+[12:07:06.260] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-4501529782'
+[12:07:06.260] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:07:06.260] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-4501529782
+[12:07:06.261] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-4501529782&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:06.333] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-4501529782' failed: Response status code does not indicate success: 404 ().
+[12:07:06.334] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-4501529782
+[12:07:06.334] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-4501529782&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:06.405] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-4501529782' failed: Response status code does not indicate success: 404 ().
+[12:07:06.405] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-4501529782*
+[12:07:06.405] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-4501529782%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:06.483] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-4501529782*' failed: Response status code does not indicate success: 404 ().
+[12:07:06.483] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-4501529782'
+[12:07:06.483] [ORDER] ✅ PO CHECK: PO 'PO-4501529782' is unique, proceeding with injection
+[12:07:06.483] [ORDER] 
+[12:07:06.483] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:07:06.483] [ORDER] 🔍 ARTICLE CHECK: Checking 6 articles for existing duplicates...
+[12:07:06.483] [ORDER] 🔍 ARTICLE CHECK: Checking article '815.011.781' in PO 'PO-4501529782'
+[12:07:06.483] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '815.011.781'
+[12:07:06.483] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D815.011.781&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:06.556] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:06.556] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:06.556] [ORDER] ✅ ARTICLE CHECK: Article '815.011.781' is unique in MKG system
+[12:07:06.556] [ORDER] 🔍 ARTICLE CHECK: Checking article '897.102.114DELIVER' in PO 'PO-4501529782'
+[12:07:06.556] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '897.102.114DELIVER'
+[12:07:06.556] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D897.102.114DELIVER&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:06.633] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:06.634] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:06.634] [ORDER] ✅ ARTICLE CHECK: Article '897.102.114DELIVER' is unique in MKG system
+[12:07:06.634] [ORDER] 🔍 ARTICLE CHECK: Checking article 'RAL1003' in PO 'PO-4501529782'
+[12:07:06.634] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'RAL1003'
+[12:07:06.634] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DRAL1003&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:06.702] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:06.703] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:06.703] [ORDER] ✅ ARTICLE CHECK: Article 'RAL1003' is unique in MKG system
+[12:07:06.703] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.50.18' in PO 'PO-4501529782'
+[12:07:06.703] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.50.18'
+[12:07:06.703] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.50.18&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:06.778] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:06.778] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:06.778] [ORDER] ✅ ARTICLE CHECK: Article '891.50.18' is unique in MKG system
+[12:07:06.779] [ORDER] 🔍 ARTICLE CHECK: Checking article '897.010.1152' in PO 'PO-4501529782'
+[12:07:06.779] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '897.010.1152'
+[12:07:06.779] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D897.010.1152&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:06.879] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:06.880] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:06.880] [ORDER] ✅ ARTICLE CHECK: Article '897.010.1152' is unique in MKG system
+[12:07:06.880] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.50.18.196' in PO 'PO-4501529782'
+[12:07:06.880] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.50.18.196'
+[12:07:06.881] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.50.18.196&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:06.975] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:06.975] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:06.976] [ORDER] ✅ ARTICLE CHECK: Article '891.50.18.196' is unique in MKG system
+[12:07:06.976] [ORDER] 
+[12:07:06.976] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-4501529782 ===
+[12:07:06.976] [ORDER] 🔄 Creating MKG Order Header for PO: PO-4501529782 with 6 lines
+[12:07:06.976] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-4501529782
+[12:07:07.080] [ORDER] ✅ HEADER: Mock order header created: E20250720120707922
+[12:07:07.081] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120707922 created successfully
+[12:07:07.081] [ORDER] 🔄 ORDER LINES: Now injecting 6 order lines...
+[12:07:07.081] [ORDER] 
+[12:07:07.082] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120707922 ===
+[12:07:07.082] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '815.011.781'
+[12:07:07.082] [ORDER] 🔄 LINE: Injecting order line 815.011.781 into order E20250720120707922
+[12:07:07.188] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:07.189] [ORDER] ✅ LINE SUCCESS: OrderLine '815.011.781' injected successfully
+[12:07:07.391] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '897.102.114DELIVER'
+[12:07:07.391] [ORDER] 🔄 LINE: Injecting order line 897.102.114DELIVER into order E20250720120707922
+[12:07:07.499] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:07.499] [ORDER] ✅ LINE SUCCESS: OrderLine '897.102.114DELIVER' injected successfully
+[12:07:07.702] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'RAL1003'
+[12:07:07.702] [ORDER] 🔄 LINE: Injecting order line RAL1003 into order E20250720120707922
+[12:07:07.826] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:07.827] [ORDER] ✅ LINE SUCCESS: OrderLine 'RAL1003' injected successfully
+[12:07:08.044] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.50.18'
+[12:07:08.044] [ORDER] 🔄 LINE: Injecting order line 891.50.18 into order E20250720120707922
+[12:07:08.150] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:08.150] [ORDER] ✅ LINE SUCCESS: OrderLine '891.50.18' injected successfully
+[12:07:08.353] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '897.010.1152'
+[12:07:08.353] [ORDER] 🔄 LINE: Injecting order line 897.010.1152 into order E20250720120707922
+[12:07:08.464] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:08.464] [ORDER] ✅ LINE SUCCESS: OrderLine '897.010.1152' injected successfully
+[12:07:08.667] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.50.18.196'
+[12:07:08.667] [ORDER] 🔄 LINE: Injecting order line 891.50.18.196 into order E20250720120707922
+[12:07:08.774] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:08.774] [ORDER] ✅ LINE SUCCESS: OrderLine '891.50.18.196' injected successfully
+[12:07:08.976] [ORDER] ✅ PO COMPLETED: PO 'PO-4501529782' injection completed
+[12:07:08.977] [ORDER] 
+[12:07:08.977] [ORDER] === PROCESSING PO: PO-891.75.0-202507201207 ===
+[12:07:08.977] [ORDER] 🔄 Processing PO: PO-891.75.0-202507201207 with 5 OrderLines
+[12:07:08.977] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-891.75.0-202507201207
+[12:07:08.977] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-891.75.0-202507201207'
+[12:07:08.977] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:07:08.977] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-891.75.0-202507201207
+[12:07:08.978] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-891.75.0-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:09.051] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-891.75.0-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:09.052] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-891.75.0-202507201207
+[12:07:09.052] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-891.75.0-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:09.139] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-891.75.0-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:09.139] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-891.75.0-202507201207*
+[12:07:09.139] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-891.75.0-202507201207%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:09.216] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-891.75.0-202507201207*' failed: Response status code does not indicate success: 404 ().
+[12:07:09.216] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-891.75.0-202507201207'
+[12:07:09.217] [ORDER] ✅ PO CHECK: PO 'PO-891.75.0-202507201207' is unique, proceeding with injection
+[12:07:09.217] [ORDER] 
+[12:07:09.217] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:07:09.217] [ORDER] 🔍 ARTICLE CHECK: Checking 5 articles for existing duplicates...
+[12:07:09.217] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.01' in PO 'PO-891.75.0-202507201207'
+[12:07:09.218] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.01'
+[12:07:09.218] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.01&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:09.293] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:09.293] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:09.294] [ORDER] ✅ ARTICLE CHECK: Article '891.75.01' is unique in MKG system
+[12:07:09.294] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.02' in PO 'PO-891.75.0-202507201207'
+[12:07:09.294] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.02'
+[12:07:09.294] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.02&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:09.371] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:09.371] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:09.372] [ORDER] ✅ ARTICLE CHECK: Article '891.75.02' is unique in MKG system
+[12:07:09.372] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.03' in PO 'PO-891.75.0-202507201207'
+[12:07:09.372] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.03'
+[12:07:09.372] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.03&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:09.455] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:09.455] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:09.456] [ORDER] ✅ ARTICLE CHECK: Article '891.75.03' is unique in MKG system
+[12:07:09.456] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.04' in PO 'PO-891.75.0-202507201207'
+[12:07:09.456] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.04'
+[12:07:09.456] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.04&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:09.530] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:09.531] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:09.531] [ORDER] ✅ ARTICLE CHECK: Article '891.75.04' is unique in MKG system
+[12:07:09.531] [ORDER] 🔍 ARTICLE CHECK: Checking article '891.75.02.000A1' in PO 'PO-891.75.0-202507201207'
+[12:07:09.532] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: '891.75.02.000A1'
+[12:07:09.532] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3D891.75.02.000A1&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:09.613] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:09.614] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:09.614] [ORDER] ✅ ARTICLE CHECK: Article '891.75.02.000A1' is unique in MKG system
+[12:07:09.615] [ORDER] 
+[12:07:09.615] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-891.75.0-202507201207 ===
+[12:07:09.615] [ORDER] 🔄 Creating MKG Order Header for PO: PO-891.75.0-202507201207 with 5 lines
+[12:07:09.615] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-891.75.0-202507201207
+[12:07:09.721] [ORDER] ✅ HEADER: Mock order header created: E20250720120709154
+[12:07:09.721] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120709154 created successfully
+[12:07:09.722] [ORDER] 🔄 ORDER LINES: Now injecting 5 order lines...
+[12:07:09.722] [ORDER] 
+[12:07:09.722] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120709154 ===
+[12:07:09.723] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.01'
+[12:07:09.723] [ORDER] 🔄 LINE: Injecting order line 891.75.01 into order E20250720120709154
+[12:07:09.829] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:09.829] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.01' injected successfully
+[12:07:10.033] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.02'
+[12:07:10.033] [ORDER] 🔄 LINE: Injecting order line 891.75.02 into order E20250720120709154
+[12:07:10.143] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:10.143] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.02' injected successfully
+[12:07:10.345] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.03'
+[12:07:10.345] [ORDER] 🔄 LINE: Injecting order line 891.75.03 into order E20250720120709154
+[12:07:10.453] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:10.454] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.03' injected successfully
+[12:07:10.671] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.04'
+[12:07:10.672] [ORDER] 🔄 LINE: Injecting order line 891.75.04 into order E20250720120709154
+[12:07:10.780] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:10.781] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.04' injected successfully
+[12:07:10.998] [ORDER] 🔄 LINE INJECTION: Processing OrderLine '891.75.02.000A1'
+[12:07:10.998] [ORDER] 🔄 LINE: Injecting order line 891.75.02.000A1 into order E20250720120709154
+[12:07:11.107] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:11.107] [ORDER] ✅ LINE SUCCESS: OrderLine '891.75.02.000A1' injected successfully
+[12:07:11.310] [ORDER] ✅ PO COMPLETED: PO 'PO-891.75.0-202507201207' injection completed
+[12:07:11.310] [ORDER] 
+[12:07:11.310] [ORDER] === PROCESSING PO: PO-IPE140-202507201207 ===
+[12:07:11.310] [ORDER] 🔄 Processing PO: PO-IPE140-202507201207 with 1 OrderLines
+[12:07:11.310] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-IPE140-202507201207
+[12:07:11.310] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-IPE140-202507201207'
+[12:07:11.310] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:07:11.310] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-IPE140-202507201207
+[12:07:11.311] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-IPE140-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:11.424] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-IPE140-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:11.425] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-IPE140-202507201207
+[12:07:11.425] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-IPE140-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:11.536] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-IPE140-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:11.537] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-IPE140-202507201207*
+[12:07:11.537] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-IPE140-202507201207%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:11.647] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-IPE140-202507201207*' failed: Response status code does not indicate success: 404 ().
+[12:07:11.648] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-IPE140-202507201207'
+[12:07:11.648] [ORDER] ✅ PO CHECK: PO 'PO-IPE140-202507201207' is unique, proceeding with injection
+[12:07:11.648] [ORDER] 
+[12:07:11.648] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:07:11.648] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:07:11.648] [ORDER] 🔍 ARTICLE CHECK: Checking article 'IPE140' in PO 'PO-IPE140-202507201207'
+[12:07:11.648] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'IPE140'
+[12:07:11.648] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DIPE140&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:11.747] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:11.748] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:11.748] [ORDER] ✅ ARTICLE CHECK: Article 'IPE140' is unique in MKG system
+[12:07:11.748] [ORDER] 
+[12:07:11.748] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-IPE140-202507201207 ===
+[12:07:11.749] [ORDER] 🔄 Creating MKG Order Header for PO: PO-IPE140-202507201207 with 1 lines
+[12:07:11.749] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-IPE140-202507201207
+[12:07:11.868] [ORDER] ✅ HEADER: Mock order header created: E20250720120711474
+[12:07:11.869] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120711474 created successfully
+[12:07:11.869] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:07:11.869] [ORDER] 
+[12:07:11.870] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120711474 ===
+[12:07:11.870] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'IPE140'
+[12:07:11.870] [ORDER] 🔄 LINE: Injecting order line IPE140 into order E20250720120711474
+[12:07:11.984] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:11.985] [ORDER] ✅ LINE SUCCESS: OrderLine 'IPE140' injected successfully
+[12:07:12.193] [ORDER] ✅ PO COMPLETED: PO 'PO-IPE140-202507201207' injection completed
+[12:07:12.194] [ORDER] 
+[12:07:12.194] [ORDER] === PROCESSING PO: PO-IPE180-202507201207 ===
+[12:07:12.194] [ORDER] 🔄 Processing PO: PO-IPE180-202507201207 with 1 OrderLines
+[12:07:12.195] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-IPE180-202507201207
+[12:07:12.195] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-IPE180-202507201207'
+[12:07:12.195] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:07:12.196] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-IPE180-202507201207
+[12:07:12.196] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-IPE180-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:12.289] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-IPE180-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:12.289] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-IPE180-202507201207
+[12:07:12.289] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-IPE180-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:12.370] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-IPE180-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:12.370] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-IPE180-202507201207*
+[12:07:12.370] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-IPE180-202507201207%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:12.447] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-IPE180-202507201207*' failed: Response status code does not indicate success: 404 ().
+[12:07:12.447] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-IPE180-202507201207'
+[12:07:12.447] [ORDER] ✅ PO CHECK: PO 'PO-IPE180-202507201207' is unique, proceeding with injection
+[12:07:12.447] [ORDER] 
+[12:07:12.447] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:07:12.447] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:07:12.447] [ORDER] 🔍 ARTICLE CHECK: Checking article 'IPE180' in PO 'PO-IPE180-202507201207'
+[12:07:12.447] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'IPE180'
+[12:07:12.447] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DIPE180&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:12.520] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:12.521] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:12.521] [ORDER] ✅ ARTICLE CHECK: Article 'IPE180' is unique in MKG system
+[12:07:12.521] [ORDER] 
+[12:07:12.521] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-IPE180-202507201207 ===
+[12:07:12.521] [ORDER] 🔄 Creating MKG Order Header for PO: PO-IPE180-202507201207 with 1 lines
+[12:07:12.521] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-IPE180-202507201207
+[12:07:12.626] [ORDER] ✅ HEADER: Mock order header created: E20250720120712897
+[12:07:12.626] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120712897 created successfully
+[12:07:12.626] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:07:12.626] [ORDER] 
+[12:07:12.627] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120712897 ===
+[12:07:12.627] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'IPE180'
+[12:07:12.627] [ORDER] 🔄 LINE: Injecting order line IPE180 into order E20250720120712897
+[12:07:12.735] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:12.735] [ORDER] ✅ LINE SUCCESS: OrderLine 'IPE180' injected successfully
+[12:07:12.952] [ORDER] ✅ PO COMPLETED: PO 'PO-IPE180-202507201207' injection completed
+[12:07:12.952] [ORDER] 
+[12:07:12.953] [ORDER] === PROCESSING PO: PO-RAL9006-202507201207 ===
+[12:07:12.953] [ORDER] 🔄 Processing PO: PO-RAL9006-202507201207 with 1 OrderLines
+[12:07:12.953] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-RAL9006-202507201207
+[12:07:12.953] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-RAL9006-202507201207'
+[12:07:12.953] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:07:12.953] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-RAL9006-202507201207
+[12:07:12.954] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-RAL9006-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:13.029] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-RAL9006-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:13.029] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-RAL9006-202507201207
+[12:07:13.029] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-RAL9006-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:13.104] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-RAL9006-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:13.104] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-RAL9006-202507201207*
+[12:07:13.104] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-RAL9006-202507201207%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:13.180] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-RAL9006-202507201207*' failed: Response status code does not indicate success: 404 ().
+[12:07:13.181] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-RAL9006-202507201207'
+[12:07:13.181] [ORDER] ✅ PO CHECK: PO 'PO-RAL9006-202507201207' is unique, proceeding with injection
+[12:07:13.181] [ORDER] 
+[12:07:13.181] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:07:13.181] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:07:13.181] [ORDER] 🔍 ARTICLE CHECK: Checking article 'RAL9006' in PO 'PO-RAL9006-202507201207'
+[12:07:13.181] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'RAL9006'
+[12:07:13.181] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DRAL9006&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:13.249] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:13.250] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:13.250] [ORDER] ✅ ARTICLE CHECK: Article 'RAL9006' is unique in MKG system
+[12:07:13.250] [ORDER] 
+[12:07:13.250] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-RAL9006-202507201207 ===
+[12:07:13.250] [ORDER] 🔄 Creating MKG Order Header for PO: PO-RAL9006-202507201207 with 1 lines
+[12:07:13.250] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-RAL9006-202507201207
+[12:07:13.371] [ORDER] ✅ HEADER: Mock order header created: E20250720120713324
+[12:07:13.372] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120713324 created successfully
+[12:07:13.372] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:07:13.372] [ORDER] 
+[12:07:13.372] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120713324 ===
+[12:07:13.372] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'RAL9006'
+[12:07:13.372] [ORDER] 🔄 LINE: Injecting order line RAL9006 into order E20250720120713324
+[12:07:13.480] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:13.480] [ORDER] ✅ LINE SUCCESS: OrderLine 'RAL9006' injected successfully
+[12:07:13.695] [ORDER] ✅ PO COMPLETED: PO 'PO-RAL9006-202507201207' injection completed
+[12:07:13.695] [ORDER] 
+[12:07:13.696] [ORDER] === PROCESSING PO: PO-WRD0000-202507201207 ===
+[12:07:13.696] [ORDER] 🔄 Processing PO: PO-WRD0000-202507201207 with 1 OrderLines
+[12:07:13.696] [ORDER] 🔍 PO CHECK: Starting duplicate check for PO: PO-WRD0000-202507201207
+[12:07:13.696] [ORDER] 🔍 PO DUPLICATE CHECK: Starting check for PO: 'PO-WRD0000-202507201207'
+[12:07:13.696] [ORDER] 🔍 PO DUPLICATE CHECK: Will try 3 search queries
+[12:07:13.696] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_uw=PO-WRD0000-202507201207
+[12:07:13.696] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_uw%3DPO-WRD0000-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:13.772] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_uw=PO-WRD0000-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:13.772] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_bestelcode_extern=PO-WRD0000-202507201207
+[12:07:13.773] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_bestelcode_extern%3DPO-WRD0000-202507201207&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:13.905] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_bestelcode_extern=PO-WRD0000-202507201207' failed: Response status code does not indicate success: 404 ().
+[12:07:13.905] [ORDER] 🔍 PO DUPLICATE CHECK: Executing query: vorh_ref_onze=*PO-WRD0000-202507201207*
+[12:07:13.905] [ORDER] 🔍 PO DUPLICATE CHECK: API endpoint: Documents/vorh/1?Filter=vorh_ref_onze%3D%2APO-WRD0000-202507201207%2A&FieldList=vorh_num,vorh_ref_uw,vorh_bestelcode_extern,vorh_ref_onze,vorh_status
+[12:07:14.018] [ORDER] ⚠️ PO DUPLICATE CHECK: Query 'vorh_ref_onze=*PO-WRD0000-202507201207*' failed: Response status code does not indicate success: 404 ().
+[12:07:14.019] [ORDER] ✅ PO DUPLICATE CHECK: No duplicates found for PO: 'PO-WRD0000-202507201207'
+[12:07:14.019] [ORDER] ✅ PO CHECK: PO 'PO-WRD0000-202507201207' is unique, proceeding with injection
+[12:07:14.019] [ORDER] 
+[12:07:14.019] [ORDER] === ARTICLE DUPLICATE CHECKING (REPORTING ONLY) ===
+[12:07:14.019] [ORDER] 🔍 ARTICLE CHECK: Checking 1 articles for existing duplicates...
+[12:07:14.019] [ORDER] 🔍 ARTICLE CHECK: Checking article 'WRD0000' in PO 'PO-WRD0000-202507201207'
+[12:07:14.019] [ORDER] 🔍 ARTICLE CHECK: Starting check for article: 'WRD0000'
+[12:07:14.019] [ORDER] 🔍 ARTICLE CHECK: API endpoint: Documents/vorr/1?Filter=vorr_arti_code%3DWRD0000&FieldList=vorh_num,vorr_arti_code,vorr_oms_1,vorr_order_aantal&NumRows=5
+[12:07:14.121] [ORDER] ❌ ARTICLE CHECK: Exception: Response status code does not indicate success: 404 ().
+[12:07:14.122] [ORDER] ❌ ARTICLE CHECK: Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgOrderController.CheckForExistingArticle(String articleCode) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgOrderController.cs:line 479
+[12:07:14.122] [ORDER] ✅ ARTICLE CHECK: Article 'WRD0000' is unique in MKG system
+[12:07:14.122] [ORDER] 
+[12:07:14.122] [ORDER] === CREATING MKG ORDER HEADER FOR PO: PO-WRD0000-202507201207 ===
+[12:07:14.122] [ORDER] 🔄 Creating MKG Order Header for PO: PO-WRD0000-202507201207 with 1 lines
+[12:07:14.122] [ORDER] 🔄 HEADER: Creating MKG order header for PO: PO-WRD0000-202507201207
+[12:07:14.238] [ORDER] ✅ HEADER: Mock order header created: E20250720120714599
+[12:07:14.238] [ORDER] ✅ HEADER CREATED: MKG Order E20250720120714599 created successfully
+[12:07:14.238] [ORDER] 🔄 ORDER LINES: Now injecting 1 order lines...
+[12:07:14.238] [ORDER] 
+[12:07:14.238] [ORDER] === INJECTING ORDER LINES FOR MKG ORDER: E20250720120714599 ===
+[12:07:14.238] [ORDER] 🔄 LINE INJECTION: Processing OrderLine 'WRD0000'
+[12:07:14.238] [ORDER] 🔄 LINE: Injecting order line WRD0000 into order E20250720120714599
+[12:07:14.346] [ORDER] ✅ LINE: Mock order line injected successfully
+[12:07:14.346] [ORDER] ✅ LINE SUCCESS: OrderLine 'WRD0000' injected successfully
+[12:07:14.547] [ORDER] ✅ PO COMPLETED: PO 'PO-WRD0000-202507201207' injection completed
+[12:07:14.548] [ORDER] 
+[12:07:14.548] [ORDER] === MKG ORDER INJECTION COMPLETED ===
+[12:07:14.548] [ORDER] 🏁 SUMMARY: MKG order injection completed
+[12:07:14.549] [ORDER] 🏁 SUMMARY: Successful injections: 18
+[12:07:14.549] [ORDER] 🏁 SUMMARY: Failed injections: 0
+[12:07:14.549] [ORDER] 🏁 SUMMARY: Duplicates filtered: 0
+[12:07:14.550] [ORDER] 🏁 SUMMARY: Processing time: 10,3 seconds
+[12:07:14.550] [ORDER] 🏁 SUMMARY: Total duplicates detected: 0
+[12:07:14.619] [QUOTE] 
+[12:07:14.620] [QUOTE] === MKG QUOTE INJECTION STARTED ===
+[12:07:14.620] [QUOTE] 🔄 Starting MKG quote injection for 2 QuoteLines
+[12:07:14.620] [QUOTE] 🔄 Debug log file: C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\bin\Debug\net5.0-windows\Data\Debug\MKG_Debug_20250720.log
+[12:07:14.620] [QUOTE] 
+[12:07:14.620] [QUOTE] === FILTERING AND GROUPING QUOTE LINES ===
+[12:07:14.620] [QUOTE] 🔄 FILTERING: Starting filter of 2 quote lines
+[12:07:14.620] [QUOTE] 🔄 FILTERING: Filtered out 0 invalid quote lines
+[12:07:14.620] [QUOTE] 🔄 FILTERING: 2 valid quote lines remaining
+[12:07:14.620] [QUOTE] 💰 Original QuoteLines: 2
+[12:07:14.620] [QUOTE] 💰 Valid QuoteLines after filtering: 2
+[12:07:14.620] [QUOTE] 💰 Grouped into 2 Quote Headers
+[12:07:14.620] [QUOTE] 💰 RFQ Group: 'RFQ-6' contains 1 lines:
+[12:07:14.621] [QUOTE]    └── Article: QUOTE-ITEM-120702 | Desc: Quote for QUOTE-ITEM-120702 | Price: €0.00
+[12:07:14.621] [QUOTE] 💰 RFQ Group: 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703' contains 1 lines:
+[12:07:14.621] [QUOTE]    └── Article: QUOTE-ITEM-120703 | Desc: Quote for QUOTE-ITEM-120703 | Price: €0.00
+[12:07:14.621] [QUOTE] 
+[12:07:14.621] [QUOTE] === PROCESSING RFQ: RFQ-6 ===
+[12:07:14.621] [QUOTE] 🔄 Processing RFQ: RFQ-6 with 1 QuoteLines
+[12:07:14.621] [QUOTE] 🔍 RFQ CHECK: Starting duplicate check for RFQ: RFQ-6
+[12:07:14.621] [QUOTE] 🔍 RFQ CHECK: Checking for existing RFQ: 'RFQ-6'
+[12:07:14.621] [QUOTE] 🔍 RFQ CHECK: API endpoint: Documents/vofh/1?Filter=vofh_ref_extern%3DRFQ-6&FieldList=vofh_num,vofh_ref_extern&NumRows=5
+[12:07:14.778] [QUOTE] ❌ ERROR: RFQ duplicate check failed for 'RFQ-6': Response status code does not indicate success: 404 ().
+[12:07:14.778] [QUOTE] Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgQuoteController.CheckForExistingRfq(String rfqNumber) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgQuoteController.cs:line 324
+[12:07:14.779] [QUOTE] ✅ RFQ CHECK: RFQ 'RFQ-6' is unique, proceeding with injection
+[12:07:14.779] [QUOTE] 
+[12:07:14.779] [QUOTE] === CREATING MKG QUOTE HEADER FOR RFQ: RFQ-6 ===
+[12:07:14.779] [QUOTE] 🔄 Creating MKG Quote Header for RFQ: RFQ-6 with 1 lines
+[12:07:14.779] [QUOTE] 🔄 Creating MKG Quote Header for RFQ: RFQ-6
+[12:07:14.839] [QUOTE] 📦 Quote Header data: {
+  "request": {
+    "InputData": {
+      "vofh": [
+        {
+          "admi_num": "1",
+          "debi_num": "30010",
+          "rela_num": "2",
+          "vofh_referentie": "RFQ-6",
+          "vofh_omschrijving": "Quote for RFQ: RFQ-6",
+          "vofh_datum": "2025-07-20",
+          "vofh_geldig_tot": "2025-08-19",
+          "vofh_status": "OPEN",
+          "vofh_prioriteit": "Normal",
+          "vofh_contact": "Default Customer",
+          "vofh_memo": "Auto-generated quote from email processing"
+        }
+      ]
+    }
+  }
+}
+[12:07:15.033] [QUOTE] 📥 MKG Quote Header Response: {"response":{"ResultData":[{"vofh":[{"RowKey":"0x00000000123f4a24","admi_num":1,"vofh_num":"E10250182","debi_num":"30010","rela_num":2}]}]}}
+[12:07:15.034] [QUOTE] ✅ HEADER CREATED: MKG Quote E10250182 created successfully
+[12:07:15.034] [QUOTE] 🔄 QUOTE LINES: Now injecting 1 quote lines...
+[12:07:15.034] [QUOTE] 
+[12:07:15.034] [QUOTE] === INJECTING QUOTE LINES FOR MKG QUOTE: E10250182 ===
+[12:07:15.034] [QUOTE] 🔄 LINE INJECTION: Processing QuoteLine 'QUOTE-ITEM-120702'
+[12:07:15.034] [QUOTE] 🔄 LINE: Injecting quote line QUOTE-ITEM-120702 into quote E10250182
+[12:07:15.153] [QUOTE] ✅ LINE: Mock quote line injected successfully
+[12:07:15.153] [QUOTE] ✅ LINE SUCCESS: QuoteLine 'QUOTE-ITEM-120702' injected successfully
+[12:07:15.368] [QUOTE] ✅ RFQ COMPLETED: RFQ 'RFQ-6' injection completed
+[12:07:15.369] [QUOTE] 
+[12:07:15.369] [QUOTE] === PROCESSING RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703 ===
+[12:07:15.369] [QUOTE] 🔄 Processing RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703 with 1 QuoteLines
+[12:07:15.369] [QUOTE] 🔍 RFQ CHECK: Starting duplicate check for RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703
+[12:07:15.370] [QUOTE] 🔍 RFQ CHECK: Checking for existing RFQ: 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703'
+[12:07:15.371] [QUOTE] 🔍 RFQ CHECK: API endpoint: Documents/vofh/1?Filter=vofh_ref_extern%3DRFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703&FieldList=vofh_num,vofh_ref_extern&NumRows=5
+[12:07:15.444] [QUOTE] ❌ ERROR: RFQ duplicate check failed for 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703': Response status code does not indicate success: 404 ().
+[12:07:15.460] [QUOTE] Stack trace:    at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at MkgApiClient.GetAsync(String endpoint) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgApiClient.cs:line 133
+   at Mkg_Elcotec_Automation.Controllers.MkgQuoteController.CheckForExistingRfq(String rfqNumber) in C:\Users\Jester\source\repos\Mkg_Elcotec_Automation_027_Lite_FUCK!!!!!\Mkg_Elcotec_Automation\Utilities\MKG\MkgQuoteController.cs:line 324
+[12:07:15.460] [QUOTE] ✅ RFQ CHECK: RFQ 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703' is unique, proceeding with injection
+[12:07:15.460] [QUOTE] 
+[12:07:15.461] [QUOTE] === CREATING MKG QUOTE HEADER FOR RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703 ===
+[12:07:15.461] [QUOTE] 🔄 Creating MKG Quote Header for RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703 with 1 lines
+[12:07:15.461] [QUOTE] 🔄 Creating MKG Quote Header for RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703
+[12:07:15.518] [QUOTE] 📦 Quote Header data: {
+  "request": {
+    "InputData": {
+      "vofh": [
+        {
+          "admi_num": "1",
+          "debi_num": "30010",
+          "rela_num": "2",
+          "vofh_referentie": "RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703",
+          "vofh_omschrijving": "Quote for RFQ: RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703",
+          "vofh_datum": "2025-07-20",
+          "vofh_geldig_tot": "2025-08-19",
+          "vofh_status": "OPEN",
+          "vofh_prioriteit": "Normal",
+          "vofh_contact": "Default Customer",
+          "vofh_memo": "Auto-generated quote from email processing"
+        }
+      ]
+    }
+  }
+}
+[12:07:15.702] [QUOTE] 📥 MKG Quote Header Response: {"response":{"ResultData":[{"vofh":[{"RowKey":"0x00000000123f4a25","admi_num":1,"vofh_num":"E10250183","debi_num":"30010","rela_num":2}]}]}}
+[12:07:15.703] [QUOTE] ✅ HEADER CREATED: MKG Quote E10250183 created successfully
+[12:07:15.703] [QUOTE] 🔄 QUOTE LINES: Now injecting 1 quote lines...
+[12:07:15.703] [QUOTE] 
+[12:07:15.703] [QUOTE] === INJECTING QUOTE LINES FOR MKG QUOTE: E10250183 ===
+[12:07:15.703] [QUOTE] 🔄 LINE INJECTION: Processing QuoteLine 'QUOTE-ITEM-120703'
+[12:07:15.704] [QUOTE] 🔄 LINE: Injecting quote line QUOTE-ITEM-120703 into quote E10250183
+[12:07:15.814] [QUOTE] ✅ LINE: Mock quote line injected successfully
+[12:07:15.815] [QUOTE] ✅ LINE SUCCESS: QuoteLine 'QUOTE-ITEM-120703' injected successfully
+[12:07:16.017] [QUOTE] ✅ RFQ COMPLETED: RFQ 'RFQ-20250720-ANTW1707FW-QUOTE-ITEM-120703' injection completed
+[12:07:16.018] [QUOTE] 
+[12:07:16.018] [QUOTE] === MKG QUOTE INJECTION COMPLETED ===
+[12:07:16.018] [QUOTE] 🏁 SUMMARY: Quote injection completed
+[12:07:16.019] [QUOTE] 🏁 SUMMARY: Successful injections: 2
+[12:07:16.020] [QUOTE] 🏁 SUMMARY: Failed injections: 0
+[12:07:16.020] [QUOTE] 🏁 SUMMARY: Duplicates filtered: 0
+[12:07:16.021] [QUOTE] 🏁 SUMMARY: Processing time: 1,4 seconds

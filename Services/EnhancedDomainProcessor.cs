@@ -522,7 +522,13 @@ namespace Mkg_Elcotec_Automation.Services
                 LogDomain($"❌ Error loading domain mappings: {ex.Message}");
             }
         }
+        public static bool IsWeirCustomer(CustomerInfo customerInfo)
+        {
+            if (customerInfo == null) return false;
 
+            return customerInfo.CustomerName.Contains("Weir", StringComparison.OrdinalIgnoreCase) ||
+                   customerInfo.EmailDomain.Contains("weir", StringComparison.OrdinalIgnoreCase);
+        }
         /// <summary>
         /// Get all configured domains for debugging
         /// </summary>

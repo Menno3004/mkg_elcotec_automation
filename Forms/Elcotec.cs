@@ -56,6 +56,8 @@ namespace Mkg_Elcotec_Automation.Forms
         public Elcotec()
         {
             InitializeComponent();
+            tabControl.DrawMode = TabDrawMode.OwnerDrawFixed;
+            tabControl.DrawItem += TabControl_DrawItem;
             SetupEnhancedDuplicationEventHandlers();
             SetupMkgMenuStrip();
             SetupBottomToolStrip();
@@ -63,11 +65,53 @@ namespace Mkg_Elcotec_Automation.Forms
             InitializeAllTabControls();
             InitializeEnhancedProgress();
             SetupEnhancedDuplicationEventHandlers();
-            SetupEmailImportCallbacks();
             Console.WriteLine("✅ Elcotec constructor completed with event wiring");
         }
         // Add these 3 simple methods to Elcotec.cs
+        private void DisplayOrderFailures(MkgOrderInjectionSummary summary)
+        {
+            var realFailures = summary.OrderResults.Where(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")).ToList();
+            if (!realFailures.Any()) return;
 
+            lstFailedInjections.Items.Add($"📦 ORDER FAILURES ({realFailures.Count}):");
+            foreach (var failure in realFailures.Take(10)) // Limit display
+            {
+                lstFailedInjections.Items.Add($"   • {failure.ArtiCode}: {failure.ErrorMessage}");
+            }
+            if (realFailures.Count > 10)
+                lstFailedInjections.Items.Add($"   ... and {realFailures.Count - 10} more order failures");
+            lstFailedInjections.Items.Add("");
+        }
+
+        private void DisplayQuoteFailures(MkgQuoteInjectionSummary summary)
+        {
+            var realFailures = summary.QuoteResults.Where(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")).ToList();
+            if (!realFailures.Any()) return;
+
+            lstFailedInjections.Items.Add($"💰 QUOTE FAILURES ({realFailures.Count}):");
+            foreach (var failure in realFailures.Take(10))
+            {
+                lstFailedInjections.Items.Add($"   • {failure.ArtiCode}: {failure.ErrorMessage}");
+            }
+            if (realFailures.Count > 10)
+                lstFailedInjections.Items.Add($"   ... and {realFailures.Count - 10} more quote failures");
+            lstFailedInjections.Items.Add("");
+        }
+
+        private void DisplayRevisionFailures(MkgRevisionInjectionSummary summary)
+        {
+            var realFailures = summary.RevisionResults.Where(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")).ToList();
+            if (!realFailures.Any()) return;
+
+            lstFailedInjections.Items.Add($"🔄 REVISION FAILURES ({realFailures.Count}):");
+            foreach (var failure in realFailures.Take(10))
+            {
+                lstFailedInjections.Items.Add($"   • {failure.ArtiCode}: {failure.ErrorMessage}");
+            }
+            if (realFailures.Count > 10)
+                lstFailedInjections.Items.Add($"   ... and {realFailures.Count - 10} more revision failures");
+            lstFailedInjections.Items.Add("");
+        }
         private void ShowInjectionErrors(MkgOrderInjectionSummary orderSummary, MkgQuoteInjectionSummary quoteSummary, MkgRevisionInjectionSummary revisionSummary)
         {
             var count = _enhancedProgress?.GetInjectionErrors() ?? 0;
@@ -84,7 +128,458 @@ namespace Mkg_Elcotec_Automation.Forms
             }
             lstFailedInjections.Items.Add("");
         }
+        // 🔧 FIXED: Event handlers for duplication service - Do NOT set injection failures for duplicates
+        private void SetupDuplicationServiceEvents()
+        {
+            try
+            {
+                // 🚨 CRITICAL BUSINESS ERRORS - Financial Protection - RED tab
+                DuplicationService.OnCriticalBusinessErrors += (count) =>
+                {
+                    try
+                    {
+                        Console.WriteLine($"🚨 CRITICAL BUSINESS ERRORS: {count} detected - immediate action required");
+                        _hasInjectionFailures = true; // ✅ CORRECT: Force RED tab for business errors
+                        UpdateTabStatus();
 
+                        // Update current run data
+                        if (_currentRunData != null)
+                        {
+                            _currentRunData.HasInjectionFailures = true;
+                            _currentRunData.TotalFailuresAtCompletion += count;
+                        }
+
+                        // Log critical errors in Failed Injections tab
+                        LogResult($"🚨 CRITICAL BUSINESS ERRORS: {count} detected - immediate action required");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Error handling critical business errors: {ex.Message}");
+                    }
+                };
+
+                // 💰 PRICE DISCREPANCY ALERTS - RED tab  
+                DuplicationService.OnPriceDiscrepancyDetected += (alert) =>
+                {
+                    try
+                    {
+                        Console.WriteLine($"💰 PRICE DISCREPANCY: {alert.ArtiCode} - {alert.DiscrepancyPercentage:F1}% difference");
+                        _hasInjectionFailures = true; // ✅ CORRECT: Force RED tab for financial risks
+                        UpdateTabStatus();
+
+                        // Update current run data
+                        if (_currentRunData != null)
+                        {
+                            _currentRunData.HasInjectionFailures = true;
+                            _currentRunData.TotalFailuresAtCompletion++;
+                        }
+
+                        // Log price discrepancy in Failed Injections tab
+                        LogResult($"💰 PRICE DISCREPANCY: {alert.ArtiCode} - {alert.DiscrepancyPercentage:F1}% difference ({alert.FinancialRisk} risk)");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Error handling price discrepancy: {ex.Message}");
+                    }
+                };
+
+                // 🔄 MANAGED MKG DUPLICATES - YELLOW tab ONLY (NOT RED)
+                DuplicationService.OnManagedMkgDuplicates += (count) =>
+                {
+                    try
+                    {
+                        Console.WriteLine($"🔄 MANAGED DUPLICATES DETECTED: {count} (NOT an error)");
+
+                        // 🔧 FIXED: Do NOT set _hasInjectionFailures for duplicates
+                        // _hasInjectionFailures = true; // ❌ WRONG - removed this line
+
+                        _hasMkgDuplicatesDetected = true; // ✅ CORRECT: Only set duplicate flag
+                        _totalDuplicatesInCurrentRun += count;
+                        UpdateTabStatus();
+
+                        // Update current run data - duplicates are NOT failures
+                        if (_currentRunData != null)
+                        {
+                            _currentRunData.HasMkgDuplicatesDetected = true;
+                            _currentRunData.TotalDuplicatesDetected += count;
+                            _currentRunData.LastDuplicateDetectionUpdate = DateTime.Now;
+
+                            // 🔧 FIXED: Do NOT increment failure count for duplicates
+                            // _currentRunData.HasInjectionFailures = true; // ❌ WRONG - removed
+                            // _currentRunData.TotalFailuresAtCompletion++; // ❌ WRONG - removed
+                        }
+
+                        // Log managed duplicates
+                        LogResult($"🔄 MANAGED DUPLICATES: {count} items handled automatically");
+                        Console.WriteLine($"✅ Duplicates processed: Total={_totalDuplicatesInCurrentRun}, Tab should be YELLOW (not red)");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Error handling managed duplicates: {ex.Message}");
+                    }
+                };
+
+                Console.WriteLine("✅ Duplication service events configured - duplicates will NOT cause red tab");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error setting up duplication service events: {ex.Message}");
+            }
+        }
+        // In Elcotec.cs - Remove the calls to UpdateFailedInjectionsTabHeaderColor during email import
+
+        // REMOVE this line from DisplayBasicHistoricalInfo method:
+        // UpdateFailedInjectionsTabHeaderColor(runInfo);
+
+        // REMOVE this line from DisplayHistoricalRunData method:  
+        // UpdateFailedInjectionsTabHeaderColor(historicalData);
+
+        // Also remove from UpdateStatusLabelsForDetailedHistory - replace UpdateTabColorsForHistoricalData call
+        // with conditional logic that only updates after MKG injection
+
+        // The UpdateFailedInjectionsTabHeaderColor method should ONLY be called:
+        // 1. After MKG injection is complete
+        // 2. When loading completed historical runs (not during import)
+
+        private void DisplayBasicHistoricalInfo(RunHistoryItem runInfo)
+        {
+            try
+            {
+                Console.WriteLine($"🔄 Displaying basic historical info for run: {runInfo.RunId}");
+
+                // Clear current displays
+                lstEmailImportResults?.Items.Clear();
+                lstMkgResults?.Items.Clear();
+                lstFailedInjections?.Items.Clear();
+
+                // Display basic info only
+                if (runInfo.Settings != null)
+                {
+                    lstEmailImportResults.Items.Add($"📧 Run ID: {runInfo.RunId}");
+                    lstEmailImportResults.Items.Add($"📅 Date: {runInfo.StartTime:yyyy-MM-dd HH:mm:ss}");
+                    lstEmailImportResults.Items.Add($"⏱️ Duration: {runInfo.Duration}");
+                    lstEmailImportResults.Items.Add($"📊 Status: {runInfo.Status}");
+                }
+
+                // Update status labels
+                UpdateStatusLabelsForBasicHistory(runInfo);
+
+                // 🔧 REMOVED: Don't update tab color during email import phase
+                // Only update tab color if this is a completed run (status = "Completed" or "Failed")
+                if (runInfo.Status == "Completed" || runInfo.Status == "Failed")
+                {
+                    UpdateFailedInjectionsTabHeaderColor(runInfo);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error displaying basic historical info: {ex.Message}");
+            }
+        }
+
+        private void DisplayHistoricalRunData(AutomationRunData historicalData)
+        {
+            try
+            {
+                Console.WriteLine("🔄 Updating UI with detailed historical data...");
+
+                // Clear current displays
+                lstEmailImportResults?.Items.Clear();
+                lstMkgResults?.Items.Clear();
+                lstFailedInjections?.Items.Clear();
+
+                // 1. Email Import Results Tab - using EXISTING method
+                DisplayHistoricalEmailResults(historicalData);
+
+                // 2. MKG Results Tab - using EXISTING method
+                DisplayHistoricalMkgResults(historicalData);
+
+                // 3. Failed Injections Tab - using EXISTING method
+                DisplayHistoricalFailedInjections(historicalData);
+
+                // 4. Update status labels - using EXISTING method
+                UpdateStatusLabelsForDetailedHistory(historicalData);
+
+                // 5. 🔧 REMOVED: Don't update tab color during email import phase
+                // Only update tab color if this historical data represents a completed run
+                // Check if the run is completed by looking at RunInfo status
+                if (historicalData.RunInfo != null &&
+                    (historicalData.RunInfo.Status == "Completed" || historicalData.RunInfo.Status == "Failed"))
+                {
+                    UpdateFailedInjectionsTabHeaderColor(historicalData);
+                }
+
+                Console.WriteLine("✅ UI updated with detailed historical data");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error displaying detailed historical data: {ex.Message}");
+            }
+        }
+
+        // The issue is in UpdateFailedInjectionsTab method
+        // The calculation for totalRealFailures is wrong, resulting in negative numbers
+        // This causes _hasInjectionFailures to be set incorrectly
+
+        // Fix the calculation in UpdateFailedInjectionsTab method:
+
+        public void UpdateFailedInjectionsTab(MkgOrderInjectionSummary orderSummary = null,
+                                MkgQuoteInjectionSummary quoteSummary = null,
+                                MkgRevisionInjectionSummary revisionSummary = null)
+        {
+            try
+            {
+                if (lstFailedInjections == null) return;
+
+                lstFailedInjections.Items.Clear();
+
+                // Calculate totals correctly
+                var totalOrderResults = orderSummary?.OrderResults?.Count ?? 0;
+                var totalQuoteResults = quoteSummary?.QuoteResults?.Count ?? 0;
+                var totalRevisionResults = revisionSummary?.RevisionResults?.Count ?? 0;
+
+                // 🔧 CRITICAL FIX: Count duplicates and real failures correctly
+                var totalMkgDuplicates = 0;
+                var totalRealFailures = 0;
+
+                // Count order failures correctly
+                if (orderSummary?.OrderResults != null)
+                {
+                    foreach (var result in orderSummary.OrderResults)
+                    {
+                        if (!result.Success)
+                        {
+                            if (result.HttpStatusCode == "MKG_DUPLICATE_SKIPPED" ||
+                                result.ErrorMessage?.Contains("DUPLICATE") == true ||
+                                result.ErrorMessage?.Contains("already exists") == true)
+                            {
+                                totalMkgDuplicates++;
+                            }
+                            else
+                            {
+                                totalRealFailures++;
+                            }
+                        }
+                    }
+                }
+
+                // Count quote failures correctly  
+                if (quoteSummary?.QuoteResults != null)
+                {
+                    foreach (var result in quoteSummary.QuoteResults)
+                    {
+                        if (!result.Success)
+                        {
+                            if (result.HttpStatusCode == "MKG_DUPLICATE_SKIPPED" ||
+                                result.ErrorMessage?.Contains("DUPLICATE") == true ||
+                                result.ErrorMessage?.Contains("already exists") == true)
+                            {
+                                totalMkgDuplicates++;
+                            }
+                            else
+                            {
+                                totalRealFailures++;
+                            }
+                        }
+                    }
+                }
+
+                // Count revision failures correctly
+                if (revisionSummary?.RevisionResults != null)
+                {
+                    foreach (var result in revisionSummary.RevisionResults)
+                    {
+                        if (!result.Success)
+                        {
+                            if (result.HttpStatusCode == "MKG_DUPLICATE_SKIPPED" ||
+                                result.ErrorMessage?.Contains("DUPLICATE") == true ||
+                                result.ErrorMessage?.Contains("already exists") == true)
+                            {
+                                totalMkgDuplicates++;
+                            }
+                            else
+                            {
+                                totalRealFailures++;
+                            }
+                        }
+                    }
+                }
+
+                // 🔧 CRITICAL FIX: Set flags correctly based on counts
+                _hasInjectionFailures = (totalRealFailures > 0);  // Only true for REAL failures
+                _hasMkgDuplicatesDetected = (totalMkgDuplicates > 0);  // True for duplicates
+                _totalDuplicatesInCurrentRun = totalMkgDuplicates;
+
+                Console.WriteLine($"🔧 FIXED FLAGS: _hasInjectionFailures={_hasInjectionFailures}, _hasMkgDuplicatesDetected={_hasMkgDuplicatesDetected}");
+                Console.WriteLine($"🔧 COUNTS: Real failures={totalRealFailures}, Duplicates={totalMkgDuplicates}");
+
+                // 🔧 FIX: Update current run data correctly
+                if (_currentRunData != null)
+                {
+                    _currentRunData.HasInjectionFailures = (totalRealFailures > 0);
+                    _currentRunData.TotalFailuresAtCompletion = totalRealFailures;
+                    _currentRunData.HasMkgDuplicatesDetected = (totalMkgDuplicates > 0);
+                    _currentRunData.TotalDuplicatesDetected = totalMkgDuplicates;
+                }
+
+                // Update status label with correct colors
+                if (lblFailedStatus != null)
+                {
+                    if (totalRealFailures == 0 && totalMkgDuplicates == 0)
+                    {
+                        lblFailedStatus.Text = "✅ No issues detected - all injections successful!";
+                        lblFailedStatus.ForeColor = Color.Green;
+                    }
+                    else if (totalRealFailures > 0)
+                    {
+                        lblFailedStatus.Text = $"❌ {totalRealFailures} real failures, {totalMkgDuplicates} duplicates detected";
+                        lblFailedStatus.ForeColor = Color.Red;
+                    }
+                    else // Only MKG duplicates, no real failures
+                    {
+                        lblFailedStatus.Text = $"🔄 {totalMkgDuplicates} duplicates detected (handled automatically)";
+                        lblFailedStatus.ForeColor = Color.DarkOrange;
+                    }
+                }
+
+                // 🔧 FIX: Update tab status with correct values
+                UpdateTabStatus();
+
+                // Rest of the method continues as before...
+                // Header
+                lstFailedInjections.Items.Add("🔍 === DETAILED INJECTION FAILURE ANALYSIS ===");
+                lstFailedInjections.Items.Add($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+
+                if (totalRealFailures == 0 && totalMkgDuplicates == 0)
+                {
+                    lstFailedInjections.Items.Add("✅ NO INJECTION FAILURES!");
+                    lstFailedInjections.Items.Add("🎉 All items processed successfully");
+                }
+                else if (totalRealFailures == 0)
+                {
+                    lstFailedInjections.Items.Add("✅ NO REAL FAILURES DETECTED");
+                    lstFailedInjections.Items.Add($"🔄 {totalMkgDuplicates} duplicates were automatically handled");
+                    lstFailedInjections.Items.Add("💡 Tab should be YELLOW/ORANGE - duplicates are not errors");
+                }
+                else
+                {
+                    lstFailedInjections.Items.Add($"❌ {totalRealFailures} REAL FAILURES detected");
+                    lstFailedInjections.Items.Add($"🔄 {totalMkgDuplicates} duplicates were automatically handled");
+                    lstFailedInjections.Items.Add("💡 Tab should be RED - real failures require attention");
+                }
+
+                lstFailedInjections.Items.Add("");
+
+                // Continue with existing display logic...
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error updating failed injections tab: {ex.Message}");
+            }
+        }
+
+        // Modify UpdateTabStatus to check this flag:
+        public void UpdateTabStatus()
+        {
+            try
+            {
+                var currentStatus = GetCurrentTabStatus();
+
+                // 🔧 CRITICAL: Force redraw ONLY if we have a tab control
+                if (tabControl != null)
+                {
+                    tabControl.Invalidate();
+                    tabControl.Update();
+                }
+
+                var statusText = currentStatus switch
+                {
+                    TabStatus.Red => "RED (critical failures or price discrepancies)",
+                    TabStatus.Yellow => "YELLOW (managed duplicates detected)",
+                    TabStatus.Green => "GREEN (no issues)",
+                    _ => "UNKNOWN"
+                };
+
+                Console.WriteLine($"🎨 Tab status updated to: {statusText}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error updating tab status: {ex.Message}");
+            }
+        }
+
+        // Modify the DuplicationService event handlers to check the flag:
+        // 🔧 FIXED: Proper status priority logic
+        private TabStatus GetCurrentTabStatus()
+        {
+            // RED takes highest priority - ONLY for actual injection errors, critical business errors, or price discrepancies
+            if (_hasInjectionFailures)
+            {
+                Console.WriteLine($"🔴 Tab status: RED - injection failures detected");
+                return TabStatus.Red;
+            }
+
+            // YELLOW - duplicates detected but no actual failures
+            if (_hasMkgDuplicatesDetected && _totalDuplicatesInCurrentRun > 0)
+            {
+                Console.WriteLine($"🟡 Tab status: YELLOW - {_totalDuplicatesInCurrentRun} duplicates detected (not errors)");
+                return TabStatus.Yellow;
+            }
+
+            // GREEN - no errors, no duplicates
+            Console.WriteLine($"🟢 Tab status: GREEN - no issues detected");
+            return TabStatus.Green;
+        }
+
+        // 🔧 FIXED: Enhanced completion handler that properly tracks actual failures vs duplicates
+        private void CompleteRunWithProperStatus()
+        {
+            try
+            {
+                if (_currentRunId != Guid.Empty)
+                {
+                    // 🔧 Count ONLY real failures, not duplicates
+                    var realFailureCount = 0;
+
+                    // Count actual injection errors from your results (simple string check since ErrorResults is List<object>)
+                    if (_currentRunData?.ErrorResults != null)
+                    {
+                        realFailureCount = _currentRunData.ErrorResults
+                            .Count(e => {
+                                var errorText = e?.ToString() ?? "";
+                                return !errorText.Contains("DUPLICATE") &&
+                                       !errorText.Contains("already exists") &&
+                                       !errorText.Contains("MKG_DUPLICATE_SKIPPED");
+                            });
+                    }
+
+                    // Update run completion with accurate data
+                    _currentRunData.TotalFailuresAtCompletion = realFailureCount;
+                    _currentRunData.HasInjectionFailures = realFailureCount > 0;
+
+                    // Complete the run with proper status
+                    var finalStatus = realFailureCount > 0 ? "Failed" : "Completed";
+                    _runHistoryManager.CompleteRun(_currentRunId, finalStatus);
+
+                    Console.WriteLine($"✅ Run completed with status: {finalStatus}");
+                    Console.WriteLine($"   📊 Real failures: {realFailureCount}");
+                    Console.WriteLine($"   📊 Managed duplicates: {_totalDuplicatesInCurrentRun}");
+                    Console.WriteLine($"   📊 Final tab should be: {(realFailureCount > 0 ? "RED" : (_totalDuplicatesInCurrentRun > 0 ? "YELLOW" : "GREEN"))}");
+
+                    RefreshRunHistory();
+
+                    // Force final tab update
+                    UpdateTabStatus();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error completing run: {ex.Message}");
+            }
+        }
+      
+       
+        
         private void ShowBusinessErrors(MkgOrderInjectionSummary orderSummary, MkgQuoteInjectionSummary quoteSummary, MkgRevisionInjectionSummary revisionSummary)
         {
             var count = _enhancedProgress?.GetBusinessErrors() ?? 0;
@@ -118,11 +613,8 @@ namespace Mkg_Elcotec_Automation.Forms
             }
             lstFailedInjections.Items.Add("");
         }
-        private void SetupEmailImportCallbacks()
-        {
-            // Subscribe to EmailWorkflowService logging events
-            EmailWorkFlowService.OnEmailProcessingUpdate += LogResult;
-        }
+
+        
         // ===== FIX TAB BUTTONS - 3 IDENTICAL BUTTONS ON EVERY TAB =====
         // ===== RESTORE EXISTING WORKING TAB BUTTON CODE WITH 3 BUTTONS PER TAB =====
         // ===== RESTORE EXISTING WORKING TAB BUTTON CODE WITH 3 BUTTONS PER TAB =====
@@ -802,83 +1294,10 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
             }
         }
 
-        // 🎯 Display basic historical info when no detailed data available
-        private void DisplayBasicHistoricalInfo(RunHistoryItem runInfo)
-        {
-            try
-            {
-                // Clear all tabs
-                lstEmailImportResults?.Items.Clear();
-                lstMkgResults?.Items.Clear();
-                lstFailedInjections?.Items.Clear();
 
-                // Email Import tab - show basic stats
-                if (lstEmailImportResults != null)
-                {
-                    lstEmailImportResults.Items.Add("=== HISTORICAL RUN SUMMARY ===");
-                    lstEmailImportResults.Items.Add($"📅 Run Date: {runInfo.StartTime:yyyy-MM-dd HH:mm:ss}");
-                    lstEmailImportResults.Items.Add($"⏱️ Duration: {runInfo.Duration}");
-                    lstEmailImportResults.Items.Add($"📊 Status: {runInfo.Status}");
-                    lstEmailImportResults.Items.Add("");
-                    lstEmailImportResults.Items.Add("📈 Statistics:");
-                    lstEmailImportResults.Items.Add($"   📧 Emails Processed: {runInfo.EmailsProcessed}");
-                    lstEmailImportResults.Items.Add($"   📦 Orders Found: {runInfo.OrdersFound}");
-                    lstEmailImportResults.Items.Add($"   💰 Quotes Found: {runInfo.QuotesFound}");
-                    lstEmailImportResults.Items.Add($"   🔄 Revisions Found: {runInfo.RevisionsFound}");
-                    lstEmailImportResults.Items.Add($"   ❌ Errors: {runInfo.ErrorsEncountered}");
-                    lstEmailImportResults.Items.Add($"   ✅ Success Rate: {runInfo.SuccessRate:F1}%");
-                    lstEmailImportResults.Items.Add("");
-                    lstEmailImportResults.Items.Add("ℹ️ Detailed data not available for this run.");
-                }
-
-                // Update status labels
-                UpdateStatusLabelsForBasicHistory(runInfo);
-
-                // 🔧 FIXED: Only update Failed Injections tab header color
-                UpdateFailedInjectionsTabHeaderColor(runInfo);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error displaying basic historical info: {ex.Message}");
-            }
-        }
-
-        // 🎯 Display detailed historical run data using EXISTING methods
-        private void DisplayHistoricalRunData(AutomationRunData historicalData)
-        {
-            try
-            {
-                Console.WriteLine("🔄 Updating UI with detailed historical data...");
-
-                // Clear current displays
-                lstEmailImportResults?.Items.Clear();
-                lstMkgResults?.Items.Clear();
-                lstFailedInjections?.Items.Clear();
-
-                // 1. Email Import Results Tab - using EXISTING method
-                DisplayHistoricalEmailResults(historicalData);
-
-                // 2. MKG Results Tab - using EXISTING method
-                DisplayHistoricalMkgResults(historicalData);
-
-                // 3. Failed Injections Tab - using EXISTING method
-                DisplayHistoricalFailedInjections(historicalData);
-
-                // 4. Update status labels - using EXISTING method
-                UpdateStatusLabelsForDetailedHistory(historicalData);
-
-                // 5. 🔧 FIXED: Only update Failed Injections tab header color
-                UpdateFailedInjectionsTabHeaderColor(historicalData);
-
-                Console.WriteLine("✅ UI updated with detailed historical data");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error displaying detailed historical data: {ex.Message}");
-            }
-        }
-
-        // 🔧 NEW: ONLY update Failed Injections tab header color (not whole tab background)
+        // Keep the UpdateFailedInjectionsTabHeaderColor method but only call it:
+        // 1. After MKG injection completion
+        // 2. When displaying truly completed runs
         private void UpdateFailedInjectionsTabHeaderColor(object dataSource)
         {
             try
@@ -908,28 +1327,37 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                     }
                 }
 
-                // 🔧 CRITICAL FIX: Use your existing tab drawing mechanism instead of changing BackColor
-                // This triggers the TabControl_DrawItem method which handles the coloring correctly
-                if (tabControl != null)
+                // Find the Failed Injections tab and update ONLY its color
+                foreach (TabPage tab in tabControl.TabPages)
                 {
-                    // Update the tracking variables so TabControl_DrawItem can use them
-                    _hasInjectionFailures = hasErrors;
-                    _hasMkgDuplicatesDetected = hasDuplicates;
+                    if (tab.Text.Contains("Failed") || tab.Text.Contains("Error"))
+                    {
+                        if (hasErrors)
+                        {
+                            tab.BackColor = Color.Red;
+                            tab.ForeColor = Color.White;
+                        }
+                        else if (hasDuplicates)
+                        {
+                            tab.BackColor = Color.Orange;
+                            tab.ForeColor = Color.White;
+                        }
+                        else
+                        {
+                            tab.BackColor = Color.Green;
+                            tab.ForeColor = Color.White;
+                        }
 
-                    // Force redraw of the tab headers only
-                    tabControl.Invalidate();
-                    tabControl.Update();
+                        Console.WriteLine($"🎨 Updated Failed Injections tab color: Errors={hasErrors}, Duplicates={hasDuplicates}");
+                        break; // Only update the Failed Injections tab
+                    }
                 }
-
-                var statusText = hasErrors ? "RED (failures)" : (hasDuplicates ? "ORANGE (duplicates)" : "GREEN (success)");
-                Console.WriteLine($"🎨 Updated Failed Injections tab header color: {statusText}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error updating tab header color: {ex.Message}");
+                Console.WriteLine($"❌ Error updating tab color: {ex.Message}");
             }
         }
-
         // 🎯 Update status labels for basic history
         private void UpdateStatusLabelsForBasicHistory(RunHistoryItem runInfo)
         {
@@ -1492,86 +1920,53 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
         }
 
 
-        private TabStatus GetCurrentTabStatus()
-        {
-            // RED takes highest priority - any injection errors
-            if (_hasInjectionFailures)
-            {
-                return TabStatus.Red;
-            }
-
-            // YELLOW - duplicates detected but no injection errors
-            if (_hasMkgDuplicatesDetected)
-            {
-                return TabStatus.Yellow;
-            }
-
-            // GREEN - no errors, no duplicates
-            return TabStatus.Green;
-        }
+        // Replace your TabControl_DrawItem method with this version:
         private void TabControl_DrawItem(object sender, DrawItemEventArgs e)
         {
             try
             {
-                TabControl tabControl = (TabControl)sender;
-                TabPage tabPage = tabControl.TabPages[e.Index];
-                Rectangle tabRect = tabControl.GetTabRect(e.Index);
+                TabControl tc = (TabControl)sender;
+                TabPage tp = tc.TabPages[e.Index];
+                Rectangle tabRect = tc.GetTabRect(e.Index);
 
-                // Determine the background color for the tab
-                Color backgroundColor = SystemColors.Control; // Default color
-                Color textColor = SystemColors.ControlText;    // Default text color
+                // Default colors
+                Color bgColor = SystemColors.Control;
+                Color textColor = SystemColors.ControlText;
 
-                // Apply special coloring to Failed Injections tab based on status
-                if (tabPage == tabFailedInjections)
+                // Check if this is the Failed Injections tab
+                if (tp.Text.Contains("Failed"))
                 {
-                    var currentStatus = GetCurrentTabStatus();
-
-                    switch (currentStatus)
+                    var status = GetCurrentTabStatus();
+                    switch (status)
                     {
                         case TabStatus.Red:
-                            backgroundColor = Color.FromArgb(255, 200, 200); // Light red
+                            bgColor = Color.LightCoral;
                             textColor = Color.DarkRed;
                             break;
-
                         case TabStatus.Yellow:
-                            backgroundColor = Color.FromArgb(255, 255, 200); // Light yellow
+                            bgColor = Color.LightYellow;
                             textColor = Color.DarkOrange;
                             break;
-
                         case TabStatus.Green:
-                            backgroundColor = Color.FromArgb(200, 255, 200); // Light green  
+                            bgColor = Color.LightGreen;
                             textColor = Color.DarkGreen;
                             break;
                     }
                 }
 
-                // Fill the tab background
-                using (SolidBrush backgroundBrush = new SolidBrush(backgroundColor))
-                {
-                    e.Graphics.FillRectangle(backgroundBrush, tabRect);
-                }
+                // Draw background
+                using (var brush = new SolidBrush(bgColor))
+                    e.Graphics.FillRectangle(brush, tabRect);
 
-                // Draw the tab border
-                using (Pen borderPen = new Pen(SystemColors.ControlDark))
-                {
-                    e.Graphics.DrawRectangle(borderPen, tabRect);
-                }
-
-                // Draw the tab text
-                using (SolidBrush textBrush = new SolidBrush(textColor))
-                {
-                    StringFormat stringFormat = new StringFormat
-                    {
-                        Alignment = StringAlignment.Center,
-                        LineAlignment = StringAlignment.Center
-                    };
-
-                    e.Graphics.DrawString(tabPage.Text, tabControl.Font, textBrush, tabRect, stringFormat);
-                }
+                // Draw text
+                TextRenderer.DrawText(e.Graphics, tp.Text, tc.Font, tabRect, textColor,
+                                     TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error drawing tab: {ex.Message}");
+                Console.WriteLine($"Tab draw error: {ex.Message}");
+                // Fallback to default drawing
+                e.DrawBackground();
             }
         }
         private void OnDuplicatesDetected(int duplicateCount)
@@ -1602,36 +1997,7 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                 Console.WriteLine($"❌ Error in OnDuplicatesDetected: {ex.Message}");
             }
         }
-        public void UpdateTabStatus()
-        {
-            try
-            {
-                var currentStatus = GetCurrentTabStatus();
 
-                // Force redraw of the tabs
-                if (tabControl != null)
-                {
-                    tabControl.Invalidate();
-                    tabControl.Update();
-                }
-
-                var statusText = currentStatus switch
-                {
-                    TabStatus.Red => "RED (injection failures)",
-                    TabStatus.Yellow => "YELLOW (duplicates detected)",
-                    TabStatus.Green => "GREEN (no issues)",
-                    _ => "UNKNOWN"
-                };
-
-                Console.WriteLine($"🎨 Tab status updated to: {statusText}");
-                Console.WriteLine($"   📊 Injection failures: {_hasInjectionFailures}");
-                Console.WriteLine($"   📊 MKG duplicates: {_hasMkgDuplicatesDetected} (total: {_totalDuplicatesInCurrentRun})");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating tab status: {ex.Message}");
-            }
-        }
         private async void btnEnhancedEmailImport_Click(object sender, EventArgs e)
         {
             if (_isProcessing)
@@ -2257,58 +2623,264 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
         /// <summary>
         /// MKG Order Results Display - NO TRUNCATION
         /// </summary>
-        private void DisplayMkgResults(MkgOrderInjectionSummary summary)
+        /// <summary>
+        /// Enhanced MKG Results Display - NO TRUNCATION, shows ALL results
+        /// </summary>
+        /// <summary>
+        /// Enhanced MKG Results Display - NO TRUNCATION, shows ALL results with CORRECT properties
+        /// </summary>
+        /// <summary>
+        /// Enhanced MKG Results Display - Fixed with better duplicate handling, success rates, and comprehensive display
+        /// </summary>
+        private void DisplayMkgResults(
+            MkgOrderInjectionSummary orderSummary,
+            MkgQuoteInjectionSummary quoteSummary = null,
+            MkgRevisionInjectionSummary revisionSummary = null)
         {
             try
             {
-                if (summary == null) return;
-
                 if (lstMkgResults != null)
                 {
-                    lstMkgResults.Items.Add($"=== ORDER INJECTION RESULTS ===");
-                    lstMkgResults.Items.Add($"Headers Created: {summary.TotalOrders} | Lines Processed: {summary.OrderResults.Count}");
-                    lstMkgResults.Items.Add($"Successful: {summary.SuccessfulInjections} | Failed: {summary.FailedInjections}");
-                    lstMkgResults.Items.Add($"Processing Time: {summary.ProcessingTime.TotalSeconds:F1}s");
+                    lstMkgResults.Items.Clear();
+
+                    // Header with timestamp
+                    lstMkgResults.Items.Add("🚀 === ENHANCED MKG INJECTION RESULTS ===");
+                    lstMkgResults.Items.Add($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                    lstMkgResults.Items.Add($"User: {Environment.UserName}");
                     lstMkgResults.Items.Add("");
 
+                    // Calculate comprehensive statistics with duplicate tracking
+                    var totalItems = (orderSummary?.OrderResults?.Count ?? 0) +
+                                   (quoteSummary?.QuoteResults?.Count ?? 0) +
+                                   (revisionSummary?.RevisionResults?.Count ?? 0);
 
-                    // Show ALL Order Headers
-                    var orderGroups = summary.OrderResults
-                        .Where(r => r.Success && !string.IsNullOrEmpty(r.MkgOrderId))
-                        .GroupBy(r => r.MkgOrderId)
-                        .ToList();
+                    var totalSuccess = (orderSummary?.SuccessfulInjections ?? 0) +
+                                     (quoteSummary?.SuccessfulInjections ?? 0) +
+                                     (revisionSummary?.SuccessfulInjections ?? 0);
 
-                    lstMkgResults.Items.Add($"Showing ALL {orderGroups.Count} Order Headers:");
+                    var totalFailed = (orderSummary?.FailedInjections ?? 0) +
+                                    (quoteSummary?.FailedInjections ?? 0) +
+                                    (revisionSummary?.FailedInjections ?? 0);
+
+                    // Calculate duplicates separately
+                    var orderDuplicates = orderSummary?.OrderResults?.Count(r => r.ErrorMessage?.Contains("Duplicate") == true) ?? 0;
+                    var quoteDuplicates = quoteSummary?.QuoteResults?.Count(r => r.ErrorMessage?.Contains("Duplicate") == true) ?? 0;
+                    var revisionDuplicates = revisionSummary?.RevisionResults?.Count(r => r.ErrorMessage?.Contains("Duplicate") == true) ?? 0;
+                    var totalDuplicates = orderDuplicates + quoteDuplicates + revisionDuplicates;
+
+                    var realFailures = totalFailed - totalDuplicates;
+                    var actualSuccessRate = totalItems > 0 ? ((totalSuccess + totalDuplicates) * 100.0 / totalItems) : 0;
+
+                    // Enhanced Summary Statistics
+                    lstMkgResults.Items.Add("📊 === INJECTION SUMMARY ===");
+                    lstMkgResults.Items.Add($"📦 Total Items Processed: {totalItems}");
+                    lstMkgResults.Items.Add($"✅ Successfully Injected: {totalSuccess}");
+                    lstMkgResults.Items.Add($"🔄 Duplicates Skipped: {totalDuplicates}");
+                    lstMkgResults.Items.Add($"❌ Real Failures: {realFailures}");
+                    lstMkgResults.Items.Add($"📈 Effective Success Rate: {actualSuccessRate:F1}% (including duplicates as handled)");
                     lstMkgResults.Items.Add("");
 
-                    foreach (var orderGroup in orderGroups)
+                    // Orders Section - Enhanced with better duplicate handling
+                    if (orderSummary != null && orderSummary.OrderResults.Any())
                     {
-                        var headerId = orderGroup.Key;
-                        var orderLines = orderGroup.ToList();
-                        var firstLine = orderLines.First();
-                        var lineCount = orderLines.Count;
+                        lstMkgResults.Items.Add("📦 === ORDER INJECTION RESULTS ===");
+                        lstMkgResults.Items.Add($"📊 Headers Created: {orderSummary.TotalOrders}");
+                        lstMkgResults.Items.Add($"📋 Lines Processed: {orderSummary.OrderResults.Count}");
+                        lstMkgResults.Items.Add($"✅ Successful: {orderSummary.SuccessfulInjections}");
+                        lstMkgResults.Items.Add($"🔄 Duplicates: {orderDuplicates}");
+                        lstMkgResults.Items.Add($"❌ Real Failures: {orderSummary.FailedInjections - orderDuplicates}");
+                        lstMkgResults.Items.Add($"⏱️ Processing Time: {orderSummary.ProcessingTime.TotalSeconds:F1}s");
+                        lstMkgResults.Items.Add("");
 
-                        lstMkgResults.Items.Add($"├── PARENT: Order Header {headerId}");
-                        lstMkgResults.Items.Add($"│   ├── PO: {firstLine.PoNumber} | Lines: {lineCount} | Time: {firstLine.ProcessedAt:HH:mm:ss}");
-                        lstMkgResults.Items.Add($"│   └── API: vorh table (Primary Key: vorh_num={headerId})");
+                        // Group by PO Number with enhanced display
+                        var orderGroups = orderSummary.OrderResults
+                            .GroupBy(r => r.PoNumber)
+                            .ToList();
 
-                        // Show ALL order lines
-                        foreach (var line in orderLines)
+                        if (orderGroups.Any())
                         {
-                            var status = line.Success ? "✓" : "✗";
-                            lstMkgResults.Items.Add($"│       └── CHILD: {line.ArtiCode} → {status}");
+                            lstMkgResults.Items.Add($"📦 Order Details ({orderGroups.Count} unique POs):");
+                            foreach (var group in orderGroups)
+                            {
+                                var lines = group.ToList();
+                                var successCount = lines.Count(l => l.Success);
+                                var duplicateCount = lines.Count(l => l.ErrorMessage?.Contains("Duplicate") == true);
+                                var realFailureCount = lines.Count(l => !l.Success && !(l.ErrorMessage?.Contains("Duplicate") == true));
+                                var poNumber = group.Key ?? "UNKNOWN";
+
+                                lstMkgResults.Items.Add($"   ├── PO: {poNumber} (✅{successCount} 🔄{duplicateCount} ❌{realFailureCount})");
+
+                                foreach (var line in lines)
+                                {
+                                    string status, details;
+                                    if (line.Success)
+                                    {
+                                        status = "✅";
+                                        details = $"{line.ArtiCode}";
+                                        // Add description if available and not empty
+                                        if (!string.IsNullOrEmpty(line.Description))
+                                        {
+                                            details += $" | {line.Description}";
+                                        }
+                                    }
+                                    else if (line.ErrorMessage?.Contains("Duplicate") == true)
+                                    {
+                                        status = "🔄";
+                                        details = $"{line.ArtiCode} | DUPLICATE";
+                                    }
+                                    else
+                                    {
+                                        status = "❌";
+                                        details = $"{line.ArtiCode} | ERROR: {line.ErrorMessage}";
+                                    }
+
+                                    lstMkgResults.Items.Add($"   │   {status} {details}");
+                                }
+                            }
                         }
-                        lstMkgResults.Items.Add("│");
+                        lstMkgResults.Items.Add("");
                     }
-                    lstMkgResults.Items.Add("└── END OF ORDER HEADERS");
+
+                    // Quotes Section - Enhanced display
+                    if (quoteSummary != null && quoteSummary.QuoteResults.Any())
+                    {
+                        lstMkgResults.Items.Add("💰 === QUOTE INJECTION RESULTS ===");
+                        lstMkgResults.Items.Add($"📊 Headers Created: {quoteSummary.TotalQuotes}");
+                        lstMkgResults.Items.Add($"📋 Lines Processed: {quoteSummary.QuoteResults.Count}");
+                        lstMkgResults.Items.Add($"✅ Successful: {quoteSummary.SuccessfulInjections}");
+                        lstMkgResults.Items.Add($"🔄 Duplicates: {quoteDuplicates}");
+                        lstMkgResults.Items.Add($"❌ Real Failures: {quoteSummary.FailedInjections - quoteDuplicates}");
+                        lstMkgResults.Items.Add($"⏱️ Processing Time: {quoteSummary.ProcessingTime.TotalSeconds:F1}s");
+                        lstMkgResults.Items.Add("");
+
+                        // Group by RFQ Number
+                        var quoteGroups = quoteSummary.QuoteResults
+                            .GroupBy(r => r.RfqNumber)
+                            .ToList();
+
+                        if (quoteGroups.Any())
+                        {
+                            lstMkgResults.Items.Add($"💰 Quote Details ({quoteGroups.Count} unique RFQs):");
+                            foreach (var group in quoteGroups)
+                            {
+                                var lines = group.ToList();
+                                var successCount = lines.Count(l => l.Success);
+                                var duplicateCount = lines.Count(l => l.ErrorMessage?.Contains("Duplicate") == true);
+                                var realFailureCount = lines.Count(l => !l.Success && !(l.ErrorMessage?.Contains("Duplicate") == true));
+                                var rfqNumber = group.Key ?? "UNKNOWN";
+
+                                lstMkgResults.Items.Add($"   ├── RFQ: {rfqNumber} (✅{successCount} 🔄{duplicateCount} ❌{realFailureCount})");
+
+                                foreach (var line in lines)
+                                {
+                                    string status, details;
+                                    if (line.Success)
+                                    {
+                                        status = "✅";
+                                        details = $"{line.ArtiCode}";
+                                        if (!string.IsNullOrEmpty(line.QuotedPrice))
+                                        {
+                                            details += $" | Price: {line.QuotedPrice}";
+                                        }
+                                    }
+                                    else if (line.ErrorMessage?.Contains("Duplicate") == true)
+                                    {
+                                        status = "🔄";
+                                        details = $"{line.ArtiCode} | DUPLICATE";
+                                    }
+                                    else
+                                    {
+                                        status = "❌";
+                                        details = $"{line.ArtiCode} | ERROR: {line.ErrorMessage}";
+                                    }
+
+                                    lstMkgResults.Items.Add($"   │   {status} {details}");
+                                }
+                            }
+                        }
+                        lstMkgResults.Items.Add("");
+                    }
+
+                    // Revisions Section - Enhanced display
+                    if (revisionSummary != null && revisionSummary.RevisionResults.Any())
+                    {
+                        lstMkgResults.Items.Add("🔄 === REVISION INJECTION RESULTS ===");
+                        lstMkgResults.Items.Add($"📊 Headers Created: {revisionSummary.TotalRevisions}");
+                        lstMkgResults.Items.Add($"📋 Lines Processed: {revisionSummary.RevisionResults.Count}");
+                        lstMkgResults.Items.Add($"✅ Successful: {revisionSummary.SuccessfulInjections}");
+                        lstMkgResults.Items.Add($"🔄 Duplicates: {revisionDuplicates}");
+                        lstMkgResults.Items.Add($"❌ Real Failures: {revisionSummary.FailedInjections - revisionDuplicates}");
+                        lstMkgResults.Items.Add($"⏱️ Processing Time: {revisionSummary.ProcessingTime.TotalSeconds:F1}s");
+                        lstMkgResults.Items.Add("");
+
+                        // Group by Article Code
+                        var revisionGroups = revisionSummary.RevisionResults
+                            .GroupBy(r => r.ArtiCode)
+                            .ToList();
+
+                        if (revisionGroups.Any())
+                        {
+                            lstMkgResults.Items.Add($"🔄 Revision Details ({revisionGroups.Count} unique articles):");
+                            foreach (var group in revisionGroups)
+                            {
+                                var lines = group.ToList();
+                                var successCount = lines.Count(l => l.Success);
+                                var duplicateCount = lines.Count(l => l.ErrorMessage?.Contains("Duplicate") == true);
+                                var realFailureCount = lines.Count(l => !l.Success && !(l.ErrorMessage?.Contains("Duplicate") == true));
+                                var articleCode = group.Key ?? "UNKNOWN";
+
+                                lstMkgResults.Items.Add($"   ├── Article: {articleCode} (✅{successCount} 🔄{duplicateCount} ❌{realFailureCount})");
+
+                                foreach (var line in lines)
+                                {
+                                    string status, details;
+                                    if (line.Success)
+                                    {
+                                        status = "✅";
+                                        details = $"{line.CurrentRevision}→{line.NewRevision}";
+                                    }
+                                    else if (line.ErrorMessage?.Contains("Duplicate") == true)
+                                    {
+                                        status = "🔄";
+                                        details = $"{line.ArtiCode} | DUPLICATE";
+                                    }
+                                    else
+                                    {
+                                        status = "❌";
+                                        details = $"{line.ArtiCode} | ERROR: {line.ErrorMessage}";
+                                    }
+
+                                    lstMkgResults.Items.Add($"   │   {status} {details}");
+                                }
+                            }
+                        }
+                        lstMkgResults.Items.Add("");
+                    }
+
+                    // 🎯 INCREMENTAL PROCESSING STEPS - Fixed Integration
+                    var mkgProcessingLog = EmailWorkFlowService.GetMkgProcessingLog();
+                    if (mkgProcessingLog.Any())
+                    {
+                        lstMkgResults.Items.Add("🔄 === INCREMENTAL PROCESSING STEPS ===");
+                        foreach (var logEntry in mkgProcessingLog)
+                        {
+                            lstMkgResults.Items.Add($"   {logEntry}");
+                        }
+                        lstMkgResults.Items.Add("");
+                    }
+
+                    lstMkgResults.Items.Add("=== END OF MKG INJECTION RESULTS ===");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error displaying MKG results: {ex.Message}");
+                Console.WriteLine($"❌ Error displaying MKG results: {ex.Message}");
+                if (lstMkgResults != null)
+                {
+                    lstMkgResults.Items.Add($"❌ Error displaying results: {ex.Message}");
+                }
             }
         }
-
         /// <summary>
         /// Quote Results Display - NO TRUNCATION
         /// </summary>
@@ -2434,9 +3006,10 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
         /// <summary>
         /// Complete Failed Injections Display for Orders, Quotes, and Revisions
         /// </summary>
+        // Replace your DisplayAllFailedInjections method with this fixed version:
         private void DisplayAllFailedInjections(MkgOrderInjectionSummary orderSummary,
-                                       MkgQuoteInjectionSummary quoteSummary,
-                                       MkgRevisionInjectionSummary revisionSummary)
+                                MkgQuoteInjectionSummary quoteSummary,
+                                MkgRevisionInjectionSummary revisionSummary)
         {
             try
             {
@@ -2444,103 +3017,118 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
 
                 lstFailedInjections.Items.Clear();
 
-                // Calculate totals INCLUDING MKG duplicates (PO level only for now)
-                int totalFailures = 0;
+                // 🔧 FIX: Calculate REAL failures vs duplicates separately
+                int totalRealFailures = 0;
                 int totalMkgDuplicates = 0;
 
                 if (orderSummary != null)
                 {
-                    totalFailures += orderSummary.FailedInjections;
+                    // Count only NON-duplicate failures as real failures
+                    var realOrderFailures = orderSummary.OrderResults.Count(r =>
+                        !r.Success && !r.HttpStatusCode.Contains("DUPLICATE"));
+                    totalRealFailures += realOrderFailures;
+
+                    // Count MKG duplicates separately
                     totalMkgDuplicates += orderSummary.OrderResults.Count(r =>
-                        r.HttpStatusCode == "MKG_DUPLICATE_SKIPPED");
+                        r.HttpStatusCode.Contains("DUPLICATE"));
                 }
                 if (quoteSummary != null)
                 {
-                    totalFailures += quoteSummary.FailedInjections;
+                    var realQuoteFailures = quoteSummary.QuoteResults.Count(r =>
+                        !r.Success && !r.HttpStatusCode.Contains("DUPLICATE"));
+                    totalRealFailures += realQuoteFailures;
+
                     totalMkgDuplicates += quoteSummary.QuoteResults.Count(r =>
-                        r.HttpStatusCode == "MKG_DUPLICATE_SKIPPED");
+                        r.HttpStatusCode.Contains("DUPLICATE"));
                 }
                 if (revisionSummary != null)
                 {
-                    totalFailures += revisionSummary.FailedInjections;
+                    var realRevisionFailures = revisionSummary.RevisionResults.Count(r =>
+                        !r.Success && !r.HttpStatusCode.Contains("DUPLICATE"));
+                    totalRealFailures += realRevisionFailures;
+
                     totalMkgDuplicates += revisionSummary.RevisionResults.Count(r =>
-                        r.HttpStatusCode == "MKG_DUPLICATE_SKIPPED");
+                        r.HttpStatusCode.Contains("DUPLICATE"));
+                }
+
+                // 🔧 CRITICAL FIX: Set flags correctly
+                _hasInjectionFailures = (totalRealFailures > 0);  // Only true for REAL failures
+                _hasMkgDuplicatesDetected = (totalMkgDuplicates > 0);  // True for duplicates
+
+                Console.WriteLine($"🔧 FIXED FLAGS: _hasInjectionFailures={_hasInjectionFailures}, _hasMkgDuplicatesDetected={_hasMkgDuplicatesDetected}");
+                Console.WriteLine($"🔧 COUNTS: Real failures={totalRealFailures}, Duplicates={totalMkgDuplicates}");
+
+                // 🔧 FIX: Update current run data correctly
+                if (_currentRunData != null)
+                {
+                    _currentRunData.HasInjectionFailures = (totalRealFailures > 0);
+                    _currentRunData.TotalFailuresAtCompletion = totalRealFailures;
+                    _currentRunData.HasMkgDuplicatesDetected = (totalMkgDuplicates > 0);
+                    _currentRunData.TotalDuplicatesDetected = totalMkgDuplicates;
                 }
 
                 // Update status label
                 if (lblFailedStatus != null)
                 {
-                    if (totalFailures == 0 && totalMkgDuplicates == 0)
+                    if (totalRealFailures == 0 && totalMkgDuplicates == 0)
                     {
                         lblFailedStatus.Text = "No issues detected - all injections successful!";
                         lblFailedStatus.ForeColor = Color.Green;
                     }
-                    else if (totalFailures > 0)
+                    else if (totalRealFailures > 0)
                     {
-                        lblFailedStatus.Text = $"{totalFailures} failures + {totalMkgDuplicates} MKG duplicates detected";
+                        lblFailedStatus.Text = $"{totalRealFailures} failures + {totalMkgDuplicates} MKG duplicates detected";
                         lblFailedStatus.ForeColor = Color.Red;
                     }
-                    else // Only MKG duplicates, no failures
+                    else // Only MKG duplicates, no real failures
                     {
                         lblFailedStatus.Text = $"{totalMkgDuplicates} MKG duplicates detected (skipped automatically)";
                         lblFailedStatus.ForeColor = Color.DarkOrange;
                     }
                 }
 
+                // 🔧 FIX: Update tab status with correct values
+                UpdateTabStatus();
+
                 // Header
                 lstFailedInjections.Items.Add("=== ENHANCED ERROR TRACKING ===");
                 lstFailedInjections.Items.Add("Intelligent error analysis enabled");
                 lstFailedInjections.Items.Add("");
 
-                if (totalFailures == 0 && totalMkgDuplicates == 0)
+                if (totalRealFailures == 0 && totalMkgDuplicates == 0)
                 {
-                    lstFailedInjections.Items.Add("NO INJECTION FAILURES!");
-                    lstFailedInjections.Items.Add("");
-                    lstFailedInjections.Items.Add("All injections completed successfully:");
-                    if (orderSummary != null)
-                        lstFailedInjections.Items.Add($"   Orders: {orderSummary.SuccessfulInjections} successful");
-                    if (quoteSummary != null)
-                        lstFailedInjections.Items.Add($"   Quotes: {quoteSummary.SuccessfulInjections} successful");
-                    if (revisionSummary != null)
-                        lstFailedInjections.Items.Add($"   Revisions: {revisionSummary.SuccessfulInjections} successful");
+                    lstFailedInjections.Items.Add("✅ NO INJECTION FAILURES!");
+                    lstFailedInjections.Items.Add("✅ All injections completed successfully");
+                    lstFailedInjections.Items.Add("✅ Ready for production use");
                     return;
                 }
 
-                // ✅ SHOW MKG DUPLICATE DETAILS
+                // Show MKG duplicates first (these are good)
                 if (totalMkgDuplicates > 0)
                 {
-                    lstFailedInjections.Items.Add($"🔄 MKG DUPLICATES DETECTED: {totalMkgDuplicates} total");
-                    lstFailedInjections.Items.Add("These items already exist in the MKG system and were skipped:");
+                    lstFailedInjections.Items.Add($"🔄 MKG DUPLICATES: {totalMkgDuplicates} items");
+                    lstFailedInjections.Items.Add("ℹ️ These are EXPECTED and indicate correct duplicate prevention");
+                    lstFailedInjections.Items.Add("ℹ️ Items already exist in MKG - no action needed");
                     lstFailedInjections.Items.Add("");
-
-                    if (orderSummary != null)
-                    {
-                        var duplicates = orderSummary.OrderResults.Where(r =>
-                            r.HttpStatusCode == "MKG_DUPLICATE_SKIPPED").ToList();
-
-                        if (duplicates.Any())
-                        {
-                            lstFailedInjections.Items.Add($"📦 ORDER DUPLICATES ({duplicates.Count}):");
-                            foreach (var dup in duplicates)
-                            {
-                                lstFailedInjections.Items.Add($"   • {dup.ArtiCode} (PO: {dup.PoNumber})");
-                                lstFailedInjections.Items.Add($"     Reason: {dup.ErrorMessage}");
-                                if (!string.IsNullOrEmpty(dup.MkgOrderId))
-                                    lstFailedInjections.Items.Add($"     Already exists as: {dup.MkgOrderId}");
-                            }
-                            lstFailedInjections.Items.Add("");
-                        }
-                    }
-
-                    // Similar for quotes and revisions...
                 }
 
                 // Show actual injection failures after duplicates
-                if (totalFailures > 0)
+                if (totalRealFailures > 0)
                 {
-                    lstFailedInjections.Items.Add($"❌ INJECTION FAILURES: {totalFailures} total");
+                    lstFailedInjections.Items.Add($"❌ REAL INJECTION FAILURES: {totalRealFailures} total");
                     lstFailedInjections.Items.Add("");
-                    // ... existing failure display logic ...
+
+                    // Display order failures
+                    if (orderSummary != null)
+                        DisplayOrderFailures(orderSummary);
+
+                    // Display quote failures  
+                    if (quoteSummary != null)
+                        DisplayQuoteFailures(quoteSummary);
+
+                    // Display revision failures
+                    if (revisionSummary != null)
+                        DisplayRevisionFailures(revisionSummary);
                 }
 
                 // Summary at the bottom
@@ -2548,14 +3136,15 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                 lstFailedInjections.Items.Add("=== SUMMARY ===");
                 if (totalMkgDuplicates > 0)
                     lstFailedInjections.Items.Add($"🔄 MKG duplicates detected: {totalMkgDuplicates}");
-                if (totalFailures > 0)
-                    lstFailedInjections.Items.Add($"❌ Failed injections: {totalFailures}");
+                if (totalRealFailures > 0)
+                    lstFailedInjections.Items.Add($"❌ Failed injections: {totalRealFailures}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error displaying failed injections: {ex.Message}");
             }
         }
+       
         private void DisplayDuplicateStatistics(MkgOrderInjectionSummary orderSummary,
                                        MkgQuoteInjectionSummary quoteSummary,
                                        MkgRevisionInjectionSummary revisionSummary)
@@ -2580,141 +3169,6 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                 lstFailedInjections.Items.Add("• No manual action required - duplicates prevent data corruption");
             }
         }
-        /// <summary>
-        /// Display failed order injections
-        /// </summary>
-        private void DisplayOrderFailures(MkgOrderInjectionSummary summary)
-        {
-            var failedResults = summary.OrderResults.Where(r => !r.Success).ToList();
-            if (!failedResults.Any()) return;
-
-            lstFailedInjections.Items.Add("");
-            lstFailedInjections.Items.Add("=== ALL FAILED ORDER INJECTIONS ===");
-            lstFailedInjections.Items.Add($"Showing ALL {failedResults.Count} failed OrderLines:");
-            lstFailedInjections.Items.Add("");
-
-            // Group by PO for better organization
-            var failedByPo = failedResults.GroupBy(r => r.PoNumber).ToList();
-
-            foreach (var poGroup in failedByPo)
-            {
-                lstFailedInjections.Items.Add($"PO: {poGroup.Key} ({poGroup.Count()} failures)");
-
-                foreach (var failed in poGroup)
-                {
-                    lstFailedInjections.Items.Add($"   ArtiCode: {failed.ArtiCode}");
-                    lstFailedInjections.Items.Add($"      Error: {failed.ErrorMessage}");
-                    lstFailedInjections.Items.Add($"      Status: {failed.HttpStatusCode} | Time: {failed.ProcessedAt:HH:mm:ss}");
-                }
-                lstFailedInjections.Items.Add("");
-            }
-
-            // Check for complete order failures
-            var entireOrderFailures = failedByPo.Where(po =>
-                !summary.OrderResults.Any(r => r.PoNumber == po.Key && r.Success)
-            ).ToList();
-
-            if (entireOrderFailures.Any())
-            {
-                lstFailedInjections.Items.Add("COMPLETE ORDER FAILURES:");
-                lstFailedInjections.Items.Add($"   {entireOrderFailures.Count} Purchase Orders failed completely (Order Header creation likely failed)");
-                foreach (var completeFailure in entireOrderFailures)
-                {
-                    lstFailedInjections.Items.Add($"   PO: {completeFailure.Key} - ALL {completeFailure.Count()} OrderLines failed");
-                }
-                lstFailedInjections.Items.Add("");
-            }
-        }
-
-        /// <summary>
-        /// Display failed quote injections
-        /// </summary>
-        private void DisplayQuoteFailures(MkgQuoteInjectionSummary summary)
-        {
-            var failedResults = summary.QuoteResults.Where(r => !r.Success).ToList();
-            if (!failedResults.Any()) return;
-
-            lstFailedInjections.Items.Add("");
-            lstFailedInjections.Items.Add("=== ALL FAILED QUOTE INJECTIONS ===");
-            lstFailedInjections.Items.Add($"Showing ALL {failedResults.Count} failed QuoteLines:");
-            lstFailedInjections.Items.Add("");
-
-            // Group by RFQ for better organization
-            var failedByRfq = failedResults.GroupBy(r => r.RfqNumber).ToList();
-
-            foreach (var rfqGroup in failedByRfq)
-            {
-                lstFailedInjections.Items.Add($"RFQ: {rfqGroup.Key} ({rfqGroup.Count()} failures)");
-
-                foreach (var failed in rfqGroup)
-                {
-                    lstFailedInjections.Items.Add($"   ArtiCode: {failed.ArtiCode}");
-                    lstFailedInjections.Items.Add($"      Error: {failed.ErrorMessage}");
-                    lstFailedInjections.Items.Add($"      Price: €{failed.QuotedPrice} | Status: {failed.HttpStatusCode} | Time: {failed.ProcessedAt:HH:mm:ss}");
-                }
-                lstFailedInjections.Items.Add("");
-            }
-        }
-
-        /// <summary>
-        /// Display failed revision injections
-        /// </summary>
-        private void DisplayRevisionFailures(MkgRevisionInjectionSummary summary)
-        {
-            var failedResults = summary.RevisionResults.Where(r => !r.Success).ToList();
-            if (!failedResults.Any()) return;
-
-            lstFailedInjections.Items.Add("");
-            lstFailedInjections.Items.Add("=== ALL FAILED REVISION INJECTIONS ===");
-            lstFailedInjections.Items.Add($"Showing ALL {failedResults.Count} failed RevisionLines:");
-            lstFailedInjections.Items.Add("");
-
-            // Group by Article for better organization
-            var failedByArticle = failedResults.GroupBy(r => r.ArtiCode).ToList();
-
-            foreach (var articleGroup in failedByArticle)
-            {
-                lstFailedInjections.Items.Add($"Article: {articleGroup.Key} ({articleGroup.Count()} failures)");
-
-                foreach (var failed in articleGroup)
-                {
-                    lstFailedInjections.Items.Add($"   Field: {failed.FieldName}");
-                    lstFailedInjections.Items.Add($"      Change: '{failed.OldValue}' → '{failed.NewValue}'");
-                    lstFailedInjections.Items.Add($"      Reason: {failed.ChangeReason}");
-                    lstFailedInjections.Items.Add($"      Error: {failed.ErrorMessage} | Status: {failed.HttpStatusCode} | Time: {failed.ProcessedAt:HH:mm:ss}");
-                }
-                lstFailedInjections.Items.Add("");
-            }
-        }
-
-        /// <summary>
-        /// Update the Failed Injections tab after MKG injection
-        /// </summary>
-        public void UpdateFailedInjectionsTab(MkgOrderInjectionSummary orderSummary = null,
-                                    MkgQuoteInjectionSummary quoteSummary = null,
-                                    MkgRevisionInjectionSummary revisionSummary = null)
-        {
-            try
-            {
-                if (lstFailedInjections == null) return;
-
-                lstFailedInjections.Items.Clear();
-                lstFailedInjections.Items.Add("=== ERROR BREAKDOWN ANALYSIS ===");
-                lstFailedInjections.Items.Add($"⏰ Analysis Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                lstFailedInjections.Items.Add("");
-
-                ShowInjectionErrors(orderSummary, quoteSummary, revisionSummary);
-                ShowBusinessErrors(orderSummary, quoteSummary, revisionSummary);
-                ShowDuplicateErrors(orderSummary, quoteSummary, revisionSummary);
-
-                // Keep your existing logic for status updates, etc.
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error updating Failed Injections tab: {ex.Message}");
-            }
-        }
-
         #endregion
 
         #region MKG API Test Logic
@@ -2723,6 +3177,12 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
             try
             {
                 Console.WriteLine("=== MKG TEST STARTING ===");
+
+                // ✅ FIX: Switch to MKG Results tab when API test starts
+                if (tabControl != null && tabControl.TabPages.Count > 1)
+                {
+                    tabControl.SelectedIndex = 1; // Switch to MKG Results tab (index 1)
+                }
 
                 if (lstMkgResults != null)
                 {
@@ -2780,17 +3240,15 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ Error in ProcessMkgApiTest: {ex.Message}");
                 HideProgress();
-                Console.WriteLine($"MKG test error: {ex.Message}");
+                toolStripStatusLabel.Text = "MKG test failed";
                 if (lstMkgResults != null)
                 {
-                    lstMkgResults.Items.Add($"MKG test failed: {ex.Message}");
+                    lstMkgResults.Items.Add($"❌ Test error: {ex.Message}");
                 }
-                toolStripStatusLabel.Text = "MKG test failed!";
-                MessageBox.Show($"MKG test failed: {ex.Message}", "Test Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void DisplayMkgTestResults(MkgTestResults results)
         {
             try
@@ -3945,7 +4403,14 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                 return null;
             }
         }
-
+        private string ExtractMkgOrderNumber(string errorMessage)
+{
+    if (string.IsNullOrEmpty(errorMessage)) return "Unknown";
+    
+    // Look for pattern "already exists as E30250314"
+    var match = System.Text.RegularExpressions.Regex.Match(errorMessage, @"exists as ([A-Z]\d+)");
+    return match.Success ? match.Groups[1].Value : "Unknown";
+}
         #endregion
         #region 🎯 Run History System
 

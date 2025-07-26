@@ -1,0 +1,99 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj",
+        "projectName": "Mkg_Elcotec_Automation",
+        "projectPath": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj",
+        "packagesPath": "C:\\Users\\Jester\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Jester\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0-windows7.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0-windows7.0": {
+            "targetAlias": "net5.0-windows",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net5.0-windows7.0": {
+          "targetAlias": "net5.0-windows",
+          "dependencies": {
+            "Azure.Identity": {
+              "target": "Package",
+              "version": "[1.14.0, )"
+            },
+            "HtmlAgilityPack": {
+              "target": "Package",
+              "version": "[1.12.1, )"
+            },
+            "Microsoft.AspNetCore.Mvc.Core": {
+              "target": "Package",
+              "version": "[2.3.0, )"
+            },
+            "Microsoft.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
+            "Microsoft.Extensions.Configuration.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
+            "Microsoft.Graph": {
+              "target": "Package",
+              "version": "[5.81.0, )"
+            },
+            "Microsoft.Graph.Core": {
+              "target": "Package",
+              "version": "[3.2.4, )"
+            },
+            "System.Collections": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            },
+            "Microsoft.WindowsDesktop.App.WindowsForms": {
+              "privateAssets": "none"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

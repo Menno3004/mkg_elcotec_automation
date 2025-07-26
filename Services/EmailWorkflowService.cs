@@ -12,23 +12,32 @@ using System.Text.RegularExpressions;
 
 namespace Mkg_Elcotec_Automation.Services
 {
-   
+
     /// <summary>
     /// Complete Email Workflow Service with MKG Integration and Live Statistics
     /// 🎯 FIXED: Now includes complete workflow with email import + MKG injection
     /// </summary>
     public static class EmailWorkFlowService
     {
-        public static event Action<string> OnEmailProcessingUpdate;
         private static List<string> _processingLog = new List<string>();
         public static void ClearProcessingLog() => _processingLog.Clear();
-
+        private static List<string> _mkgProcessingLog = new List<string>();
+        public static void ClearMkgProcessingLog() => _mkgProcessingLog.Clear();
+        public static List<string> GetMkgProcessingLog() => new List<string>(_mkgProcessingLog);
         private static void LogWorkflow(string message)
         {
             var logEntry = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
             _processingLog.Add(logEntry);
             Console.WriteLine($"[EMAIL_WORKFLOW] {logEntry}");
         }
+        public static void LogMkgWorkflow(string message)
+        {
+            var logEntry = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
+            _mkgProcessingLog.Add(logEntry);
+            Console.WriteLine($"[MKG_WORKFLOW] {logEntry}");
+        }
+
+
         public static async Task<EmailImportSummary> ImportEmailsAsync(
     EnhancedProgressManager progressManager = null,
     Action<string> logCallback = null)
@@ -101,36 +110,34 @@ namespace Mkg_Elcotec_Automation.Services
 
                     int processedCount = 0;
 
+                    // FIXED EMAIL PROCESSING LOOP - This is the main issue with S.Emails counter
+
                     foreach (var email in emailList)
                     {
                         try
                         {
-                            // Update progress for each email
                             processedCount++;
-
-                            // 🎯 FIX: Increment T.Emails as each email is processed
-                            progressManager?.IncrementTotalEmails();
+                            progressManager?.IncrementTotalEmails(); // T.Emails++
 
                             var emailProgress = 30 + (processedCount * 40 / emailList.Count());
                             progressManager?.UpdateProgress(emailProgress, 100, $"Processing email {processedCount}/{emailList.Count()}...");
 
-                            // 🎯 Show incremental email counter with subject preview + REAL-TIME LOGGING
                             var emailSubjectPreview = (email.Subject?.Length > 40) ? email.Subject.Substring(0, 40) + "..." : email.Subject ?? "No Subject";
                             progressManager?.UpdateDebugConsole($"🎯 Processing email {processedCount}/{emailList.Count()}: {emailSubjectPreview}");
                             logCallback?.Invoke($"📧 [{processedCount}/{emailList.Count()}] Processing: {email.Subject}");
 
-                            // 🎯 NEW: Check for same-client duplicates (D.Emails)
-                            // 🎯 NEW: Check for same-client duplicates (D.Emails)
+                            // STEP 1: Check for duplicates FIRST
                             var emailKey = GenerateEmailKey(email);
                             if (trackingData.ProcessedEmailIds.Contains(emailKey))
                             {
-                                LogWorkflow($"🔄 Duplicate email detected: {email.Subject} from {email.From?.EmailAddress?.Address}");
+                                LogWorkflow($"🔄 Duplicate email detected: {email.Subject}");
                                 logCallback?.Invoke($"🔄 Duplicate email skipped: {emailSubjectPreview}");
-                                logCallback?.Invoke(""); // Add spacing after duplicates
-                                IncrementDuplicateEmails(progressManager, $"{email.Subject} (same content from same client)");
+                                logCallback?.Invoke(""); // RESTORE LINE SPACING
+
+                                // Duplicates go to D.Emails
+                                progressManager?.IncrementDuplicateEmails();
                                 trackingData.DuplicateEmailsCount++;
 
-                                // 🔧 FIX: Add to DuplicateEmails list, NOT SkippedEmails
                                 summary.DuplicateEmails.Add(new DuplicateEmailDetail
                                 {
                                     Subject = email.Subject ?? "No Subject",
@@ -138,13 +145,10 @@ namespace Mkg_Elcotec_Automation.Services
                                     Reason = "Duplicate content from same client",
                                     ReceivedDate = email.ReceivedDateTime?.DateTime ?? DateTime.Now
                                 });
-                                continue; // Skip processing this duplicate email
+                                continue; // Skip this email completely
                             }
 
-                            // Add to processed emails tracking
-                            trackingData.ProcessedEmailIds.Add(emailKey);
 
-                            // 🎯 NEW: Check if email domain is supported (S.Emails)
                             var senderDomain = ExtractDomain(email.From?.EmailAddress?.Address ?? "");
                             var customerInfo = EnhancedDomainProcessor.GetCustomerInfoForDomain(senderDomain);
 
@@ -152,11 +156,9 @@ namespace Mkg_Elcotec_Automation.Services
                             {
                                 LogWorkflow($"⏭️ Email skipped: Unsupported domain {senderDomain}");
                                 logCallback?.Invoke($"⏭️ Skipped - unsupported domain: {senderDomain}");
-                                logCallback?.Invoke(""); // Add spacing after skipped emails
-                                IncrementSkippedEmails(progressManager, $"Unsupported domain: {senderDomain}");
+                                logCallback?.Invoke(""); // RESTORE LINE SPACING
+                                progressManager?.IncrementSkippedEmails();
                                 trackingData.SkippedEmailsCount++;
-
-                                // 🔧 FIX: This correctly goes to SkippedEmails
                                 summary.SkippedEmails.Add(new SkippedEmailDetail
                                 {
                                     Subject = email.Subject ?? "No Subject",
@@ -164,35 +166,64 @@ namespace Mkg_Elcotec_Automation.Services
                                     Reason = $"Unsupported domain: {senderDomain}",
                                     ReceivedDate = email.ReceivedDateTime?.DateTime ?? DateTime.Now
                                 });
-                                continue; // Skip processing this email
+                                continue; // Skip this email completely
                             }
-                            // 🎯 Process business email with real-time statistics tracking
+
+                            // STEP 2.5: Lite v1.0 - Only process Weir customers
+                            if (!EnhancedDomainProcessor.IsWeirCustomer(customerInfo))
+                            {
+                                LogWorkflow($"⏭️ Email skipped: Non-Weir customer {customerInfo.CustomerName} (Lite v1.0)");
+                                logCallback?.Invoke($"⏭️ Skipped - non-Weir customer: {customerInfo.CustomerName}");
+                                logCallback?.Invoke(""); // RESTORE LINE SPACING
+                                progressManager?.IncrementSkippedEmails();
+                                trackingData.SkippedEmailsCount++;
+                                summary.SkippedEmails.Add(new SkippedEmailDetail
+                                {
+                                    Subject = email.Subject ?? "No Subject",
+                                    Sender = email.From?.EmailAddress?.Address ?? "Unknown Sender",
+                                    Reason = $"Non-Weir customer: {customerInfo.CustomerName} (Lite v1.0 - Weir only)",
+                                    ReceivedDate = email.ReceivedDateTime?.DateTime ?? DateTime.Now
+                                });
+                                continue; // Skip this email completely
+                            }
+                            // STEP 3: Mark as processed
+                            trackingData.ProcessedEmailIds.Add(emailKey);
+
+                            // STEP 4: Try to extract business content
                             var emailDetail = await ProcessBusinessEmailWithRealTimeStats(
                                 email, graphHandler, userEmail, progressManager, trackingData, processedCount, emailList.Count());
 
-                            if (emailDetail != null)
+                            if (emailDetail != null && emailDetail.Orders.Any())
                             {
+                                // SUCCESS: Business content found
                                 summary.EmailDetails.Add(emailDetail);
                                 summary.ProcessedEmails++;
 
-                                // 🎯 Show business content found + REAL-TIME LOGGING WITH SPACING
-                                var businessCount = emailDetail.Orders?.Count ?? 0;
-                                var orderCount = emailDetail.Orders?.Count(o => HasProperty(o, "PoNumber")) ?? 0;
-                                var quoteCount = emailDetail.Orders?.Count(o => HasProperty(o, "RfqNumber") || HasProperty(o, "QuoteNumber")) ?? 0;
-                                var revisionCount = emailDetail.Orders?.Count(o => HasProperty(o, "CurrentRevision") || HasProperty(o, "NewRevision")) ?? 0;
+                                // FIXED: Show BOTH headers and lines
+                                var orderHeaders = emailDetail.Orders.Where(o => HasProperty(o, "PoNumber")).GroupBy(o => GetDynamicProperty(o, "PoNumber")).Count();
+                                var orderLines = emailDetail.Orders.Count(o => HasProperty(o, "PoNumber"));
 
-                                progressManager?.UpdateDebugConsole($"✅ Email {processedCount}/{emailList.Count()} processed: {businessCount} business items found");
-                                logCallback?.Invoke($"   ✅ Found: {orderCount} orders, {quoteCount} quotes, {revisionCount} revisions");
-                                logCallback?.Invoke(""); // Add spacing after each processed email
+                                var quoteHeaders = emailDetail.Orders.Where(o => HasProperty(o, "RfqNumber") || HasProperty(o, "QuoteNumber")).GroupBy(o => GetDynamicProperty(o, "RfqNumber") + GetDynamicProperty(o, "QuoteNumber")).Count();
+                                var quoteLines = emailDetail.Orders.Count(o => HasProperty(o, "RfqNumber") || HasProperty(o, "QuoteNumber"));
+
+                                var revisionHeaders = emailDetail.Orders.Where(o => HasProperty(o, "CurrentRevision") || HasProperty(o, "NewRevision")).GroupBy(o => GetDynamicProperty(o, "ArtiCode")).Count();
+                                var revisionLines = emailDetail.Orders.Count(o => HasProperty(o, "CurrentRevision") || HasProperty(o, "NewRevision"));
+
+                                progressManager?.UpdateDebugConsole($"✅ Email {processedCount}/{emailList.Count()} processed: {emailDetail.Orders.Count} business items found");
+                                logCallback?.Invoke($"   ✅ Found: {orderHeaders}H/{orderLines}L orders, {quoteHeaders}H/{quoteLines}L quotes, {revisionHeaders}H/{revisionLines}L revisions");
+                                logCallback?.Invoke(""); // RESTORE LINE SPACING
                                 LogWorkflow($"✅ Email processed successfully: {emailDetail.Subject}");
                             }
                             else
                             {
-                                // Email processed but no business content
+                                // FAILED: No business content found
                                 LogWorkflow($"⏭️ Email skipped: No business content found");
                                 logCallback?.Invoke($"   ⚠️ No business content found");
-                                logCallback?.Invoke(""); // Add spacing after no content found
-                                IncrementSkippedEmails(progressManager, "No business content found"); // 🔧 FIX: This is correct
+                                logCallback?.Invoke(""); // RESTORE LINE SPACING
+
+                                // FIXED: This should increment S.Emails
+                                Console.WriteLine($"🔥 DEBUG: Incrementing S.Emails for no business content");
+                                progressManager?.IncrementSkippedEmails();
                                 trackingData.SkippedEmailsCount++;
 
                                 summary.SkippedEmails.Add(new SkippedEmailDetail
@@ -206,11 +237,17 @@ namespace Mkg_Elcotec_Automation.Services
                         }
                         catch (Exception emailEx)
                         {
+                            // ERROR: Processing failed
                             summary.FailedEmails++;
                             LogWorkflow($"❌ Error processing email: {emailEx.Message}");
                             logCallback?.Invoke($"❌ Error processing email: {emailEx.Message}");
-                            logCallback?.Invoke(""); // Add spacing after errors
+                            logCallback?.Invoke(""); // RESTORE LINE SPACING
                             progressManager?.UpdateDebugConsole($"❌ Email {processedCount}/{emailList.Count()} failed: {emailEx.Message}");
+
+                            // FIXED: Errors should increment S.Emails
+                            Console.WriteLine($"🔥 DEBUG: Incrementing S.Emails for processing error");
+                            progressManager?.IncrementSkippedEmails();
+                            trackingData.SkippedEmailsCount++;
 
                             summary.SkippedEmails.Add(new SkippedEmailDetail
                             {
@@ -221,6 +258,22 @@ namespace Mkg_Elcotec_Automation.Services
                             });
                         }
                     }
+
+                    // FIXED: Remove read-only property assignments
+                    // The counts are calculated from the Lists automatically:
+                    // summary.SkippedEmailsCount = summary.SkippedEmails.Count (read-only property)
+                    // summary.DuplicateEmailsCount = summary.DuplicateEmails.Count (read-only property)
+
+                    // DEBUG: Log final counts to verify (using correct property access)
+                    LogWorkflow($"🔥 FINAL DEBUG COUNTS:");
+                    LogWorkflow($"   T.Emails: {summary.TotalEmails}");
+                    LogWorkflow($"   Processed: {summary.ProcessedEmails}");
+                    LogWorkflow($"   S.Emails: {trackingData.SkippedEmailsCount} (Summary List: {summary.SkippedEmails.Count})");
+                    LogWorkflow($"   D.Emails: {trackingData.DuplicateEmailsCount} (Summary List: {summary.DuplicateEmails.Count})");
+                    LogWorkflow($"   Failed: {summary.FailedEmails}");
+
+                    // FINAL CHECK: Update progress manager with correct counts
+                    progressManager?.UpdateEmailStats(summary.TotalEmails, trackingData.SkippedEmailsCount, trackingData.DuplicateEmailsCount);
 
                     // Step 5: Calculate final summary totals (simplified version since methods don't exist)
                     progressManager?.UpdateProgress(80, 100, "Calculating summary totals...");
@@ -235,7 +288,24 @@ namespace Mkg_Elcotec_Automation.Services
                     LogWorkflow($"📊 Summary calculation complete - {summary.TotalOrdersExtracted} orders, {summary.TotalQuotesExtracted} quotes, {summary.TotalRevisionsExtracted} revisions");
                     logCallback?.Invoke($"📊 Final totals: {summary.TotalOrdersExtracted} orders, {summary.TotalQuotesExtracted} quotes, {summary.TotalRevisionsExtracted} revisions");
 
-                    // Step 6: Complete email import phase (but don't hide panel) and continue with injection
+                    // Step 6: RESTORE MISSING FUNCTIONALITY - Save to output tab and display in email import tab
+                    progressManager?.UpdateProgress(90, 100, "Saving results to output...");
+                    progressManager?.UpdateDebugConsole("💾 Saving results to output tab...");
+                    logCallback?.Invoke("💾 Saving results to output and displaying in email import tab...");
+
+                    // Generate detailed results content
+                    var outputContent = GenerateDetailedResults(summary, trackingData);
+
+                    // Save to output tab first
+                    SaveToOutputTab(outputContent, $"Email Import Results - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+
+                    // Then display in email import tab
+                    DisplayInEmailImportTab(outputContent);
+
+                    LogWorkflow("💾 Results saved to output tab and displayed in email import tab");
+                    logCallback?.Invoke("💾 Results saved and displayed successfully");
+
+                    // Step 7: Complete email import phase (but don't hide panel) and continue with injection
                     progressManager?.UpdateDebugConsole($"📧 Email import complete: {summary.ProcessedEmails} processed, {trackingData.SkippedEmailsCount} skipped, {trackingData.DuplicateEmailsCount} duplicates");
                     logCallback?.Invoke($"✅ Email import completed: {summary.ProcessedEmails} processed, {trackingData.SkippedEmailsCount} skipped, {trackingData.DuplicateEmailsCount} duplicates");
                     LogWorkflow($"=== EMAIL IMPORT COMPLETED ===");
@@ -274,6 +344,130 @@ namespace Mkg_Elcotec_Automation.Services
                 throw;
             }
         }
+
+        #region Output Save and Display Methods - RESTORED FUNCTIONALITY
+
+        /// <summary>
+        /// Generate detailed results content for output tab
+        /// </summary>
+        private static string GenerateDetailedResults(EmailImportSummary summary, TrackingData trackingData)
+        {
+            var result = new System.Text.StringBuilder();
+
+            result.AppendLine("=== EMAIL IMPORT DETAILED RESULTS ===");
+            result.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            result.AppendLine();
+
+            // Summary Statistics
+            result.AppendLine("📊 SUMMARY STATISTICS:");
+            result.AppendLine($"   Total Emails Processed: {summary.TotalEmails}");
+            result.AppendLine($"   Successfully Processed: {summary.ProcessedEmails}");
+            result.AppendLine($"   Skipped Emails: {summary.SkippedEmails.Count}");
+            result.AppendLine($"   Duplicate Emails: {summary.DuplicateEmails.Count}");
+            result.AppendLine($"   Failed Emails: {summary.FailedEmails}");
+            result.AppendLine();
+
+            // Business Content Extracted
+            result.AppendLine("📦 BUSINESS CONTENT EXTRACTED:");
+            result.AppendLine($"   Order Headers: {trackingData.UniquePoNumbers.Count}");
+            result.AppendLine($"   Order Lines: {trackingData.TotalOrderLines}");
+            result.AppendLine($"   Quote Headers: {trackingData.UniqueRfqNumbers.Count}");
+            result.AppendLine($"   Quote Lines: {trackingData.TotalQuoteLines}");
+            result.AppendLine($"   Revision Headers: {trackingData.UniqueRevisionArticles.Count}");
+            result.AppendLine($"   Revision Lines: {trackingData.TotalRevisionLines}");
+            result.AppendLine();
+
+            // Detailed Breakdown
+            if (summary.EmailDetails.Any())
+            {
+                result.AppendLine("📧 PROCESSED EMAILS BREAKDOWN:");
+                foreach (var email in summary.EmailDetails)
+                {
+                    result.AppendLine($"   ✅ {email.Subject}");
+                    result.AppendLine($"      From: {email.Sender}");
+                    result.AppendLine($"      Domain: {email.ClientDomain}");
+                    result.AppendLine($"      Items Found: {email.Orders.Count}");
+                    result.AppendLine($"      Date: {email.ReceivedDate:yyyy-MM-dd HH:mm}");
+                    result.AppendLine();
+                }
+            }
+
+            // Skipped Emails
+            if (summary.SkippedEmails.Any())
+            {
+                result.AppendLine("⏭️ SKIPPED EMAILS:");
+                foreach (var skipped in summary.SkippedEmails)
+                {
+                    result.AppendLine($"   ⚠️ {skipped.Subject}");
+                    result.AppendLine($"      From: {skipped.Sender}");
+                    result.AppendLine($"      Reason: {skipped.Reason}");
+                    result.AppendLine($"      Date: {skipped.ReceivedDate:yyyy-MM-dd HH:mm}");
+                    result.AppendLine();
+                }
+            }
+
+            // Duplicate Emails
+            if (summary.DuplicateEmails.Any())
+            {
+                result.AppendLine("🔄 DUPLICATE EMAILS:");
+                foreach (var duplicate in summary.DuplicateEmails)
+                {
+                    result.AppendLine($"   🔄 {duplicate.Subject}");
+                    result.AppendLine($"      From: {duplicate.Sender}");
+                    result.AppendLine($"      Reason: {duplicate.Reason}");
+                    result.AppendLine($"      Date: {duplicate.ReceivedDate:yyyy-MM-dd HH:mm}");
+                    result.AppendLine();
+                }
+            }
+            // 🎯 ADD THIS: Incremental Processing Steps
+            result.AppendLine("🔄 INCREMENTAL PROCESSING STEPS:");
+            foreach (var logEntry in _processingLog)
+            {
+                result.AppendLine($"   {logEntry}");
+            }
+            result.AppendLine();
+            result.AppendLine("=== END OF DETAILED RESULTS ===");
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Save content to output tab - PLACEHOLDER METHOD
+        /// Implement this to call your existing output tab save functionality
+        /// </summary>
+        private static void SaveToOutputTab(string content, string title)
+        {
+            try
+            {
+                // TODO: Replace this with your actual output tab save method
+                // Example: OutputController.SaveToTab(content, title);
+                LogWorkflow($"💾 Content saved to output tab: {title}");
+            }
+            catch (Exception ex)
+            {
+                LogWorkflow($"❌ Error saving to output tab: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Display content in email import tab - PLACEHOLDER METHOD
+        /// Implement this to call your existing email import tab display functionality
+        /// </summary>
+        private static void DisplayInEmailImportTab(string content)
+        {
+            try
+            {
+                // TODO: Replace this with your actual email import tab display method
+                // Example: EmailImportController.DisplayResults(content);
+                LogWorkflow("💾 Content displayed in email import tab");
+            }
+            catch (Exception ex)
+            {
+                LogWorkflow($"❌ Error displaying in email import tab: {ex.Message}");
+            }
+        }
+
+        #endregion
+
         #region Real-time Statistics Increment Methods
         private static void IncrementSkippedEmails(EnhancedProgressManager progressManager, string reason)
         {
@@ -881,6 +1075,7 @@ namespace Mkg_Elcotec_Automation.Services
         }
 
         #endregion
+
         #region Email Processing Helper Methods
 
         /// <summary>
@@ -940,28 +1135,6 @@ namespace Mkg_Elcotec_Automation.Services
                 return Guid.NewGuid().ToString(); // Fallback to unique ID
             }
         }
-        /// <summary>
-        /// Check if email domain is supported for processing
-        /// </summary>
-        private static bool IsSupportedDomain(string domain)
-        {
-            if (string.IsNullOrEmpty(domain))
-                return false;
-
-            var supportedDomains = new[]
-            {
-        "weir.co.uk",
-        "weirgroup.com",
-        "weir-minerals.com",
-        "mail.weir",                    // ADD THIS
-        "weirminerals.coupahost.com",   // ADD THIS
-        "weir"                          // ADD THIS (catches all weir variants)
-    };
-
-            return supportedDomains.Any(supported =>
-                domain.Contains(supported, StringComparison.OrdinalIgnoreCase));
-        }
-
         #endregion
     }
 }
