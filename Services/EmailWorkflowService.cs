@@ -9,6 +9,7 @@ using Mkg_Elcotec_Automation.Models;
 using Mkg_Elcotec_Automation.Models.EmailModels;
 using Mkg_Elcotec_Automation.Controllers;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace Mkg_Elcotec_Automation.Services
 {
@@ -24,6 +25,7 @@ namespace Mkg_Elcotec_Automation.Services
         private static List<string> _mkgProcessingLog = new List<string>();
         public static void ClearMkgProcessingLog() => _mkgProcessingLog.Clear();
         public static List<string> GetMkgProcessingLog() => new List<string>(_mkgProcessingLog);
+        public static List<string> GetProcessingLog() => new List<string>(_processingLog);
         private static void LogWorkflow(string message)
         {
             var logEntry = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
@@ -352,88 +354,62 @@ namespace Mkg_Elcotec_Automation.Services
         /// </summary>
         private static string GenerateDetailedResults(EmailImportSummary summary, TrackingData trackingData)
         {
-            var result = new System.Text.StringBuilder();
-
-            result.AppendLine("=== EMAIL IMPORT DETAILED RESULTS ===");
-            result.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-            result.AppendLine();
-
-            // Summary Statistics
-            result.AppendLine("📊 SUMMARY STATISTICS:");
-            result.AppendLine($"   Total Emails Processed: {summary.TotalEmails}");
-            result.AppendLine($"   Successfully Processed: {summary.ProcessedEmails}");
-            result.AppendLine($"   Skipped Emails: {summary.SkippedEmails.Count}");
-            result.AppendLine($"   Duplicate Emails: {summary.DuplicateEmails.Count}");
-            result.AppendLine($"   Failed Emails: {summary.FailedEmails}");
-            result.AppendLine();
-
-            // Business Content Extracted
-            result.AppendLine("📦 BUSINESS CONTENT EXTRACTED:");
-            result.AppendLine($"   Order Headers: {trackingData.UniquePoNumbers.Count}");
-            result.AppendLine($"   Order Lines: {trackingData.TotalOrderLines}");
-            result.AppendLine($"   Quote Headers: {trackingData.UniqueRfqNumbers.Count}");
-            result.AppendLine($"   Quote Lines: {trackingData.TotalQuoteLines}");
-            result.AppendLine($"   Revision Headers: {trackingData.UniqueRevisionArticles.Count}");
-            result.AppendLine($"   Revision Lines: {trackingData.TotalRevisionLines}");
-            result.AppendLine();
-
-            // Detailed Breakdown
-            if (summary.EmailDetails.Any())
+            var result = new
             {
-                result.AppendLine("📧 PROCESSED EMAILS BREAKDOWN:");
-                foreach (var email in summary.EmailDetails)
+                EmailImportResults = new
                 {
-                    result.AppendLine($"   ✅ {email.Subject}");
-                    result.AppendLine($"      From: {email.Sender}");
-                    result.AppendLine($"      Domain: {email.ClientDomain}");
-                    result.AppendLine($"      Items Found: {email.Orders.Count}");
-                    result.AppendLine($"      Date: {email.ReceivedDate:yyyy-MM-dd HH:mm}");
-                    result.AppendLine();
+                    GeneratedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    SummaryStatistics = new
+                    {
+                        TotalEmailsProcessed = summary.TotalEmails,
+                        SuccessfullyProcessed = summary.ProcessedEmails,
+                        SkippedEmails = summary.SkippedEmails.Count,
+                        DuplicateEmails = summary.DuplicateEmails.Count,
+                        FailedEmails = summary.FailedEmails
+                    },
+                    BusinessContentExtracted = new
+                    {
+                        OrderHeaders = trackingData.UniquePoNumbers.Count,
+                        OrderLines = trackingData.TotalOrderLines,
+                        QuoteHeaders = trackingData.UniqueRfqNumbers.Count,
+                        QuoteLines = trackingData.TotalQuoteLines,
+                        RevisionHeaders = trackingData.UniqueRevisionArticles.Count,
+                        RevisionLines = trackingData.TotalRevisionLines
+                    },
+                    ProcessedEmails = summary.EmailDetails.Select(email => new
+                    {
+                        Subject = email.Subject,
+                        Sender = email.Sender,
+                        ClientDomain = email.ClientDomain,
+                        ItemsFound = email.Orders.Count,
+                        ReceivedDate = email.ReceivedDate.ToString("yyyy-MM-dd HH:mm")
+                    }).ToArray(),
+                    SkippedEmails = summary.SkippedEmails.Select(skipped => new
+                    {
+                        Subject = skipped.Subject,
+                        Sender = skipped.Sender,
+                        Reason = skipped.Reason,
+                        ReceivedDate = skipped.ReceivedDate.ToString("yyyy-MM-dd HH:mm")
+                    }).ToArray(),
+                    DuplicateEmails = summary.DuplicateEmails.Select(duplicate => new
+                    {
+                        Subject = duplicate.Subject,
+                        Sender = duplicate.Sender,
+                        Reason = duplicate.Reason,
+                        ReceivedDate = duplicate.ReceivedDate.ToString("yyyy-MM-dd HH:mm")
+                    }).ToArray(),
+                    IncrementalProcessingSteps = _processingLog.ToArray()
                 }
-            }
+            };
 
-            // Skipped Emails
-            if (summary.SkippedEmails.Any())
+            var options = new JsonSerializerOptions
             {
-                result.AppendLine("⏭️ SKIPPED EMAILS:");
-                foreach (var skipped in summary.SkippedEmails)
-                {
-                    result.AppendLine($"   ⚠️ {skipped.Subject}");
-                    result.AppendLine($"      From: {skipped.Sender}");
-                    result.AppendLine($"      Reason: {skipped.Reason}");
-                    result.AppendLine($"      Date: {skipped.ReceivedDate:yyyy-MM-dd HH:mm}");
-                    result.AppendLine();
-                }
-            }
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
 
-            // Duplicate Emails
-            if (summary.DuplicateEmails.Any())
-            {
-                result.AppendLine("🔄 DUPLICATE EMAILS:");
-                foreach (var duplicate in summary.DuplicateEmails)
-                {
-                    result.AppendLine($"   🔄 {duplicate.Subject}");
-                    result.AppendLine($"      From: {duplicate.Sender}");
-                    result.AppendLine($"      Reason: {duplicate.Reason}");
-                    result.AppendLine($"      Date: {duplicate.ReceivedDate:yyyy-MM-dd HH:mm}");
-                    result.AppendLine();
-                }
-            }
-            // 🎯 ADD THIS: Incremental Processing Steps
-            result.AppendLine("🔄 INCREMENTAL PROCESSING STEPS:");
-            foreach (var logEntry in _processingLog)
-            {
-                result.AppendLine($"   {logEntry}");
-            }
-            result.AppendLine();
-            result.AppendLine("=== END OF DETAILED RESULTS ===");
-            return result.ToString();
+            return JsonSerializer.Serialize(result, options);
         }
-
-        /// <summary>
-        /// Save content to output tab - PLACEHOLDER METHOD
-        /// Implement this to call your existing output tab save functionality
-        /// </summary>
         private static void SaveToOutputTab(string content, string title)
         {
             try

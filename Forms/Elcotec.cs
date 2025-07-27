@@ -12,6 +12,7 @@ using Mkg_Elcotec_Automation.Services;
 using Mkg_Elcotec_Automation.Models;
 using Mkg_Elcotec_Automation.Models.EmailModels;
 using Mkg_Elcotec_Automation.Controllers;
+using System.Text.Json;
 
 namespace Mkg_Elcotec_Automation.Forms
 {
@@ -22,7 +23,7 @@ namespace Mkg_Elcotec_Automation.Forms
         private EnhancedProgressManager _enhancedProgress;
         private bool _isProcessing = false;
         private DateTime _processingStartTime;
-
+        private bool _isEmailImportRunning = false; // 🔵 NEW: Track email import status
         // Bottom ToolStrip components
         private ToolStrip bottomToolStrip;
         private ToolStripProgressBar toolStripProgressBar;
@@ -67,7 +68,454 @@ namespace Mkg_Elcotec_Automation.Forms
             SetupEnhancedDuplicationEventHandlers();
             Console.WriteLine("✅ Elcotec constructor completed with event wiring");
         }
-        // Add these 3 simple methods to Elcotec.cs
+        /// <summary>
+        /// Enhanced MKG Results Display using MkgResultsExtractor for comprehensive data
+        /// </summary>
+        private void DisplayMkgResults(
+            MkgOrderInjectionSummary orderSummary,
+            MkgQuoteInjectionSummary quoteSummary = null,
+            MkgRevisionInjectionSummary revisionSummary = null,
+            string rawResultsText = null)
+        {
+            try
+            {
+                if (lstMkgResults != null)
+                {
+                    lstMkgResults.Items.Clear();
+
+                    // If we have raw results text, use the extractor for detailed parsing
+                    if (!string.IsNullOrEmpty(rawResultsText))
+                    {
+                        var extractedData = MkgResultsExtractor.ExtractMkgResults(rawResultsText);
+                        DisplayExtractedMkgResults(extractedData);
+                        return;
+                    }
+
+                    // Fallback to summary display if no raw text available
+                    DisplaySummaryMkgResults(orderSummary, quoteSummary, revisionSummary);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error displaying MKG results: {ex.Message}");
+                lstMkgResults?.Items.Add($"❌ Error displaying results: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// OVERLOAD: Method to accept just raw results text
+        /// </summary>
+        private void DisplayMkgResults(string rawResultsText)
+        {
+            if (!string.IsNullOrEmpty(rawResultsText))
+            {
+                var extractedData = MkgResultsExtractor.ExtractMkgResults(rawResultsText);
+                DisplayExtractedMkgResults(extractedData);
+            }
+        }
+
+        /// <summary>
+        /// Display comprehensive results using extracted data - Enhanced for actual data format
+        /// </summary>
+        private void DisplayExtractedMkgResults(MkgResultsExtractor.MkgResultsData data)
+        {
+            // Header with extracted metadata
+            lstMkgResults.Items.Add("🚀 === ENHANCED MKG INJECTION RESULTS ===");
+            lstMkgResults.Items.Add($"Generated: {(data.ExportTime != DateTime.MinValue ? data.ExportTime.ToString("yyyy-MM-dd HH:mm:ss") : DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"))}");
+            lstMkgResults.Items.Add($"User: {data.User ?? Environment.UserName}");
+            lstMkgResults.Items.Add("");
+
+            // Enhanced Summary Statistics
+            lstMkgResults.Items.Add("📊 === ENHANCED SUMMARY STATISTICS ===");
+            lstMkgResults.Items.Add($"Total Items Processed: {data.Summary.TotalItemsProcessed:N0}");
+            lstMkgResults.Items.Add($"Successfully Injected: {data.Summary.SuccessfullyInjected:N0}");
+            lstMkgResults.Items.Add($"Duplicates Skipped: {data.Summary.DuplicatesSkipped:N0}");
+            lstMkgResults.Items.Add($"Real Failures: {data.Summary.RealFailures:N0}");
+            lstMkgResults.Items.Add($"Effective Success Rate: {data.Summary.EffectiveSuccessRate:F2}%");
+
+            if (data.Summary.HeadersCreated > 0)
+                lstMkgResults.Items.Add($"Headers Created: {data.Summary.HeadersCreated:N0}");
+            if (data.Summary.LinesProcessed > 0)
+                lstMkgResults.Items.Add($"Lines Processed: {data.Summary.LinesProcessed:N0}");
+            if (!string.IsNullOrEmpty(data.Summary.ProcessingTime))
+                lstMkgResults.Items.Add($"Processing Time: {data.Summary.ProcessingTime}");
+
+            lstMkgResults.Items.Add("");
+
+            // Order Injection Results with detailed breakdown
+            if (data.OrderGroups.Any())
+            {
+                lstMkgResults.Items.Add("📦 === ORDER INJECTION RESULTS ===");
+                lstMkgResults.Items.Add($"Processing Time: {data.Summary.ProcessingTime}");
+                lstMkgResults.Items.Add($"Total Orders: {data.OrderGroups.Count}");
+                lstMkgResults.Items.Add($"Successful: {data.Summary.SuccessfullyInjected}");
+                lstMkgResults.Items.Add($"Failed: {data.Summary.RealFailures}");
+                lstMkgResults.Items.Add($"Duplicates: {data.Summary.DuplicatesSkipped}");
+                lstMkgResults.Items.Add("");
+
+                foreach (var group in data.OrderGroups)
+                {
+                    lstMkgResults.Items.Add($"  PO: {group.PoNumber} (✅{group.SuccessCount} 🔄{group.DuplicateCount} ❌{group.FailureCount})");
+
+                    if (!string.IsNullOrEmpty(group.MkgOrderId))
+                        lstMkgResults.Items.Add($"    MKG Order ID: {group.MkgOrderId}");
+
+                    // Show detailed items if available
+                    foreach (var item in group.Items)
+                    {
+                        var statusIcon = item.IsSuccess ? "✅" : item.IsDuplicate ? "🔄" : "❌";
+                        lstMkgResults.Items.Add($"    {statusIcon} {item.ArticleCode} | Status: {item.HttpStatus} | Time: {item.ProcessedAt:HH:mm:ss}");
+
+                        if (!string.IsNullOrEmpty(item.Description))
+                            lstMkgResults.Items.Add($"      Description: {item.Description}");
+
+                        if (!string.IsNullOrEmpty(item.ErrorMessage))
+                            lstMkgResults.Items.Add($"      Error: {item.ErrorMessage}");
+                    }
+                }
+                lstMkgResults.Items.Add("");
+            }
+
+            // Quote Injection Results with detailed breakdown
+            if (data.QuoteGroups.Any())
+            {
+                lstMkgResults.Items.Add("💰 === QUOTE INJECTION RESULTS ===");
+                lstMkgResults.Items.Add($"Headers Created: {data.QuoteGroups.Count} | Lines Processed: {data.QuoteGroups.Sum(q => q.LineCount)}");
+                lstMkgResults.Items.Add($"Successful: {data.QuoteGroups.Sum(q => q.Items.Count(i => i.Success))} | Failed: {data.QuoteGroups.Sum(q => q.Items.Count(i => !i.Success))}");
+                lstMkgResults.Items.Add("");
+                lstMkgResults.Items.Add($"Showing ALL {data.QuoteGroups.Count} Quote Headers:");
+                lstMkgResults.Items.Add("");
+
+                for (int i = 0; i < data.QuoteGroups.Count; i++)
+                {
+                    var group = data.QuoteGroups[i];
+                    var connector = i == data.QuoteGroups.Count - 1 ? "└──" : "├──";
+
+                    lstMkgResults.Items.Add($"{connector} PARENT: Quote Header {group.MkgQuoteId}");
+                    lstMkgResults.Items.Add($"│   ├── RFQ: {group.RfqNumber} | Lines: {group.LineCount} | Time: {group.ProcessedAt:HH:mm:ss}");
+                    lstMkgResults.Items.Add($"│   └── API: vofh table (Primary Key: vofh_num={group.MkgQuoteId})");
+
+                    // Show detailed quote items
+                    foreach (var item in group.Items)
+                    {
+                        var statusIcon = item.Success ? "✓" : "✗";
+                        lstMkgResults.Items.Add($"│       └── CHILD: {item.ArticleCode} ({item.Currency}) → {statusIcon}");
+                    }
+
+                    if (i < data.QuoteGroups.Count - 1)
+                        lstMkgResults.Items.Add("│");
+                }
+
+                lstMkgResults.Items.Add("│");
+                lstMkgResults.Items.Add("└── END OF QUOTE HEADERS");
+                lstMkgResults.Items.Add("");
+            }
+
+            // Revision Injection Results with detailed breakdown
+            if (data.RevisionGroups.Any())
+            {
+                lstMkgResults.Items.Add("🔧 === REVISION INJECTION RESULTS ===");
+
+                foreach (var group in data.RevisionGroups)
+                {
+                    lstMkgResults.Items.Add($"Article: {group.ArticleCode} | {group.CurrentRevision} → {group.NewRevision}");
+                    if (!string.IsNullOrEmpty(group.MkgRevisionId))
+                        lstMkgResults.Items.Add($"  MKG Revision ID: {group.MkgRevisionId} | Time: {group.ProcessedAt:HH:mm:ss}");
+
+                    // Show detailed revision items
+                    foreach (var item in group.Items)
+                    {
+                        var statusIcon = item.Success ? "✅" : "❌";
+                        lstMkgResults.Items.Add($"  {statusIcon} {item.ArticleCode} | {item.CurrentRevision} → {item.NewRevision}");
+
+                        if (!string.IsNullOrEmpty(item.ChangeReason))
+                            lstMkgResults.Items.Add($"    Reason: {item.ChangeReason}");
+
+                        if (!string.IsNullOrEmpty(item.ErrorMessage))
+                            lstMkgResults.Items.Add($"    Error: {item.ErrorMessage}");
+                    }
+                    lstMkgResults.Items.Add("");
+                }
+            }
+
+            // Processing Steps
+            if (data.ProcessingSteps.Any())
+            {
+                lstMkgResults.Items.Add("🔄 === INCREMENTAL PROCESSING STEPS ===");
+                foreach (var step in data.ProcessingSteps)
+                {
+                    lstMkgResults.Items.Add($"   {step}");
+                }
+                lstMkgResults.Items.Add("");
+            }
+
+            lstMkgResults.Items.Add("=== END OF ENHANCED RESULTS ===");
+        }
+
+        /// <summary>
+        /// Fallback display for summary data only
+        /// </summary>
+        private void DisplaySummaryMkgResults(
+            MkgOrderInjectionSummary orderSummary,
+            MkgQuoteInjectionSummary quoteSummary,
+            MkgRevisionInjectionSummary revisionSummary)
+        {
+            // Header with timestamp
+            lstMkgResults.Items.Add("🚀 === MKG INJECTION RESULTS (SUMMARY) ===");
+            lstMkgResults.Items.Add($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            lstMkgResults.Items.Add($"User: {Environment.UserName}");
+            lstMkgResults.Items.Add("");
+
+            // Calculate comprehensive statistics
+            var totalItems = (orderSummary?.OrderResults?.Count ?? 0) +
+                           (quoteSummary?.QuoteResults?.Count ?? 0) +
+                           (revisionSummary?.RevisionResults?.Count ?? 0);
+
+            var totalSuccess = (orderSummary?.SuccessfulInjections ?? 0) +
+                             (quoteSummary?.SuccessfulInjections ?? 0) +
+                             (revisionSummary?.SuccessfulInjections ?? 0);
+
+            var totalFailed = (orderSummary?.FailedInjections ?? 0) +
+                            (quoteSummary?.FailedInjections ?? 0) +
+                            (revisionSummary?.FailedInjections ?? 0);
+
+            var totalDuplicates = (orderSummary?.DuplicatesDetected ?? 0) +
+                                (quoteSummary?.DuplicatesDetected ?? 0) +
+                                (revisionSummary?.DuplicatesDetected ?? 0);
+
+            var effectiveSuccessRate = totalItems > 0 ? (double)totalSuccess / (totalSuccess + totalFailed) * 100 : 0;
+
+            // Enhanced Summary Statistics
+            lstMkgResults.Items.Add("📊 === SUMMARY STATISTICS ===");
+            lstMkgResults.Items.Add($"Total Items Processed: {totalItems:N0}");
+            lstMkgResults.Items.Add($"Successfully Injected: {totalSuccess:N0}");
+            lstMkgResults.Items.Add($"Duplicates Skipped: {totalDuplicates:N0}");
+            lstMkgResults.Items.Add($"Real Failures: {totalFailed:N0}");
+            lstMkgResults.Items.Add($"Effective Success Rate: {effectiveSuccessRate:F2}%");
+            lstMkgResults.Items.Add("");
+
+            // Display detailed results for each category
+            if (orderSummary != null)
+                DisplayOrderSummaryDetails(orderSummary);
+
+            if (quoteSummary != null)
+                DisplayQuoteSummaryDetails(quoteSummary);
+
+            if (revisionSummary != null)
+                DisplayRevisionSummaryDetails(revisionSummary);
+
+            lstMkgResults.Items.Add("=== END OF SUMMARY RESULTS ===");
+        }
+
+        private void DisplayOrderSummaryDetails(MkgOrderInjectionSummary orderSummary)
+        {
+            lstMkgResults.Items.Add("📦 === ORDER INJECTION RESULTS ===");
+            lstMkgResults.Items.Add($"Processing Time: {orderSummary.ProcessingTime}");
+            lstMkgResults.Items.Add($"Total Orders: {orderSummary.TotalOrders}");
+            lstMkgResults.Items.Add($"Successful: {orderSummary.SuccessfulInjections}");
+            lstMkgResults.Items.Add($"Failed: {orderSummary.FailedInjections}");
+            lstMkgResults.Items.Add($"Duplicates: {orderSummary.DuplicatesDetected}");
+
+            if (orderSummary.OrderResults?.Any() == true)
+            {
+                var groupedByPo = orderSummary.OrderResults.GroupBy(r => r.PoNumber ?? "Unknown");
+                foreach (var poGroup in groupedByPo)
+                {
+                    var successCount = poGroup.Count(r => r.Success);
+                    var failCount = poGroup.Count(r => !r.Success && !r.IsDuplicate && r.ErrorMessage?.Contains("Duplicate") != true);
+                    var dupCount = poGroup.Count(r => r.IsDuplicate || r.ErrorMessage?.Contains("Duplicate") == true);
+
+                    lstMkgResults.Items.Add($"  PO: {poGroup.Key} (✅{successCount} 🔄{dupCount} ❌{failCount})");
+                }
+            }
+            lstMkgResults.Items.Add("");
+        }
+
+        private void DisplayQuoteSummaryDetails(MkgQuoteInjectionSummary quoteSummary)
+        {
+            lstMkgResults.Items.Add("💰 === QUOTE INJECTION RESULTS ===");
+            lstMkgResults.Items.Add($"Processing Time: {quoteSummary.ProcessingTime}");
+            lstMkgResults.Items.Add($"Total Quotes: {quoteSummary.TotalQuotes}");
+            lstMkgResults.Items.Add($"Successful: {quoteSummary.SuccessfulInjections}");
+            lstMkgResults.Items.Add($"Failed: {quoteSummary.FailedInjections}");
+            lstMkgResults.Items.Add($"Duplicates: {quoteSummary.DuplicatesDetected}");
+            lstMkgResults.Items.Add("");
+        }
+
+        private void DisplayRevisionSummaryDetails(MkgRevisionInjectionSummary revisionSummary)
+        {
+            lstMkgResults.Items.Add("🔧 === REVISION INJECTION RESULTS ===");
+            lstMkgResults.Items.Add($"Processing Time: {revisionSummary.ProcessingTime}");
+            lstMkgResults.Items.Add($"Total Revisions: {revisionSummary.TotalRevisions}");
+            lstMkgResults.Items.Add($"Successful: {revisionSummary.SuccessfulInjections}");
+            lstMkgResults.Items.Add($"Failed: {revisionSummary.FailedInjections}");
+            lstMkgResults.Items.Add($"Duplicates: {revisionSummary.DuplicatesDetected}");
+            lstMkgResults.Items.Add("");
+        }
+        // Add this method to your MkgOrderController.cs or wherever the injection results are being generated:
+
+        private void GenerateComprehensiveMkgResults(
+            MkgOrderInjectionSummary orderSummary,
+            MkgQuoteInjectionSummary quoteSummary = null,
+            MkgRevisionInjectionSummary revisionSummary = null)
+        {
+            try
+            {
+                if (lstMkgResults != null)
+                {
+                    lstMkgResults.Items.Clear();
+
+                    // Header
+                    lstMkgResults.Items.Add("🚀 === COMPREHENSIVE MKG INJECTION RESULTS ===");
+                    lstMkgResults.Items.Add($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                    lstMkgResults.Items.Add($"User: {Environment.UserName}");
+                    lstMkgResults.Items.Add("");
+
+                    // Calculate totals
+                    var totalItems = (orderSummary?.OrderResults?.Count ?? 0) +
+                                   (quoteSummary?.QuoteResults?.Count ?? 0) +
+                                   (revisionSummary?.RevisionResults?.Count ?? 0);
+
+                    var totalSuccess = (orderSummary?.SuccessfulInjections ?? 0) +
+                                     (quoteSummary?.SuccessfulInjections ?? 0) +
+                                     (revisionSummary?.SuccessfulInjections ?? 0);
+
+                    var totalDuplicates = (orderSummary?.DuplicatesDetected ?? 0) +
+                                        (quoteSummary?.DuplicatesDetected ?? 0) +
+                                        (revisionSummary?.DuplicatesDetected ?? 0);
+
+                    var totalFailed = (orderSummary?.FailedInjections ?? 0) +
+                                    (quoteSummary?.FailedInjections ?? 0) +
+                                    (revisionSummary?.FailedInjections ?? 0) - totalDuplicates;
+
+                    var successRate = totalItems > 0 ? (double)totalSuccess / totalItems * 100 : 0;
+
+                    // Summary Statistics
+                    lstMkgResults.Items.Add("📊 === INJECTION SUMMARY ===");
+                    lstMkgResults.Items.Add($"📦 Total Items Processed: {totalItems}");
+                    lstMkgResults.Items.Add($"✅ Successfully Injected: {totalSuccess}");
+                    lstMkgResults.Items.Add($"🔄 Duplicates Skipped: {totalDuplicates}");
+                    lstMkgResults.Items.Add($"❌ Real Failures: {totalFailed}");
+                    lstMkgResults.Items.Add($"📈 Effective Success Rate: {successRate:F1}% (including duplicates as handled)");
+                    lstMkgResults.Items.Add("");
+
+                    // ORDER RESULTS
+                    if (orderSummary?.OrderResults?.Any() == true)
+                    {
+                        lstMkgResults.Items.Add("📦 === ORDER INJECTION RESULTS ===");
+                        lstMkgResults.Items.Add($"📊 Headers Created: {orderSummary.TotalOrders}");
+                        lstMkgResults.Items.Add($"📋 Lines Processed: {orderSummary.OrderResults.Count}");
+                        lstMkgResults.Items.Add($"✅ Successful: {orderSummary.SuccessfulInjections}");
+                        lstMkgResults.Items.Add($"🔄 Duplicates: {orderSummary.DuplicatesDetected}");
+                        lstMkgResults.Items.Add($"❌ Real Failures: {orderSummary.FailedInjections - orderSummary.DuplicatesDetected}");
+                        lstMkgResults.Items.Add($"⏱️ Processing Time: {orderSummary.ProcessingTime.TotalSeconds:F1}s");
+                        lstMkgResults.Items.Add("");
+
+                        // Group by PO for detailed display
+                        var groupedOrders = orderSummary.OrderResults
+                            .GroupBy(r => r.PoNumber)
+                            .OrderBy(g => g.Key);
+
+                        lstMkgResults.Items.Add($"📦 Order Details ({groupedOrders.Count()} unique POs):");
+                        foreach (var poGroup in groupedOrders)
+                        {
+                            var successCount = poGroup.Count(r => r.Success);
+                            var duplicateCount = poGroup.Count(r => r.HttpStatusCode == "DUPLICATE_SKIPPED");
+                            var failureCount = poGroup.Count(r => !r.Success && r.HttpStatusCode != "DUPLICATE_SKIPPED");
+
+                            lstMkgResults.Items.Add($"   ├── PO: {poGroup.Key} (✅{successCount} 🔄{duplicateCount} ❌{failureCount})");
+
+                            foreach (var order in poGroup.Take(10)) // Limit to first 10 for space
+                            {
+                                var statusIcon = order.Success ? "✅" :
+                                               order.HttpStatusCode == "DUPLICATE_SKIPPED" ? "🔄" : "❌";
+
+                                lstMkgResults.Items.Add($"   │   {statusIcon} {order.ArtiCode} | Status:{order.HttpStatusCode} | Time:{order.ProcessedAt:HH:mm:ss}");
+
+                                // Add detailed breakdown
+                                lstMkgResults.Items.Add($"   │       ├── 🎯 CORE DATA:");
+                                lstMkgResults.Items.Add($"   │       │   ├── Article Code: {order.ArtiCode}");
+                                lstMkgResults.Items.Add($"   │       │   ├── PO Number: {order.PoNumber}");
+                                lstMkgResults.Items.Add($"   │       │   ├── Description: {order.Description ?? "N/A"}");
+                                lstMkgResults.Items.Add($"   │       │   └── Success: {order.Success}");
+
+                                lstMkgResults.Items.Add($"   │       ├── 🆔 MKG IDENTIFIERS:");
+                                lstMkgResults.Items.Add($"   │       │   ├── MKG Order ID: {order.MkgOrderId}");
+                                lstMkgResults.Items.Add($"   │       │   ├── Order Number: {order.OrderNumber ?? "N/A"}");
+                                lstMkgResults.Items.Add($"   │       │   ├── Line ID: {order.LineId ?? "N/A"}");
+                                lstMkgResults.Items.Add($"   │       │   └── Order Line ID: {order.OrderLineId ?? "N/A"}");
+
+                                lstMkgResults.Items.Add($"   │       ├── 📊 STATUS & RESPONSE:");
+                                lstMkgResults.Items.Add($"   │       │   ├── HTTP Status: {order.HttpStatusCode}");
+                                lstMkgResults.Items.Add($"   │       │   ├── Status Code: {order.StatusCode ?? "N/A"}");
+                                lstMkgResults.Items.Add($"   │       │   ├── Is Duplicate: {!order.Success && order.HttpStatusCode == "DUPLICATE_SKIPPED"}");
+                                lstMkgResults.Items.Add($"   │       │   └── Processed At: {order.ProcessedAt:yyyy-MM-dd HH:mm:ss}");
+
+                                if (order.Success)
+                                {
+                                    lstMkgResults.Items.Add($"   │       ├── 📤 REQUEST: {{");
+                                    lstMkgResults.Items.Add($"   │       │   \"request\": {{");
+                                    lstMkgResults.Items.Add($"   │       │     \"InputData\": {{");
+                                    lstMkgResults.Items.Add($"   │       │       \"vorr\": [");
+                                    lstMkgResults.Items.Add($"   │       │         {{");
+                                    lstMkgResults.Items.Add($"   │       │           \"vorh_num\": \"{order.MkgOrderId}\"...");
+
+                                    lstMkgResults.Items.Add($"   │       ├── 📥 RESPONSE: {{\"response\":{{\"ResultData\":[{{\"vorr\":[{{\"RowKey\":\"{order.RowKey ?? "N/A"}\",\"admi_num\":1,\"vorh_num\":\"{order.MkgOrderId}\"...");
+                                }
+                                else if (order.HttpStatusCode == "DUPLICATE_SKIPPED")
+                                {
+                                    lstMkgResults.Items.Add($"   │       ├── ❌ ERROR INFO:");
+                                    lstMkgResults.Items.Add($"   │       │   └── Error: {order.ErrorMessage}");
+                                }
+
+                                lstMkgResults.Items.Add($"   │");
+                            }
+
+                            if (poGroup.Count() > 10)
+                            {
+                                lstMkgResults.Items.Add($"   │   ... and {poGroup.Count() - 10} more items");
+                            }
+                        }
+                        lstMkgResults.Items.Add("");
+                    }
+
+                    // QUOTE RESULTS
+                    if (quoteSummary?.QuoteResults?.Any() == true)
+                    {
+                        DisplayQuoteResults(quoteSummary);
+                    }
+
+                    // REVISION RESULTS  
+                    if (revisionSummary?.RevisionResults?.Any() == true)
+                    {
+                        DisplayRevisionResults(revisionSummary);
+                    }
+
+                    // Processing Steps
+                    lstMkgResults.Items.Add("🔄 === INCREMENTAL PROCESSING STEPS ===");
+                    foreach (var logEntry in GetProcessingLog())
+                    {
+                        lstMkgResults.Items.Add($"   {logEntry}");
+                    }
+                    lstMkgResults.Items.Add("");
+                    lstMkgResults.Items.Add("=== END OF COMPREHENSIVE MKG INJECTION RESULTS ===");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error displaying comprehensive MKG results: {ex.Message}");
+                if (lstMkgResults != null)
+                {
+                    lstMkgResults.Items.Add($"❌ Error displaying results: {ex.Message}");
+                }
+            }
+        }
+
+        // Also need to update the DisplayMkgResults method call in your main injection code:
+        // Replace this line in your injection completion:
+        // DisplayMkgResults(orderSummary, quoteSummary, revisionSummary);
+        // With:
+        // GenerateComprehensiveMkgResults(orderSummary, quoteSummary, revisionSummary);
         private void DisplayOrderFailures(MkgOrderInjectionSummary summary)
         {
             var realFailures = summary.OrderResults.Where(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")).ToList();
@@ -488,17 +936,50 @@ namespace Mkg_Elcotec_Automation.Forms
                 // 🔧 CRITICAL: Force redraw ONLY if we have a tab control
                 if (tabControl != null)
                 {
+                    // Find the Failed Injections tab and update ONLY its color
+                    foreach (TabPage tab in tabControl.TabPages)
+                    {
+                        if (tab.Text.Contains("Failed") || tab.Text.Contains("Error"))
+                        {
+                            Color backColor;
+                            Color foreColor = Color.White;
+
+                            // 🔵 NEW: Set blue color during email import
+                            if (_isEmailImportRunning)
+                            {
+                                backColor = Color.Blue;
+                                Console.WriteLine("🔵 Tab status: BLUE - Email import running");
+                            }
+                            else
+                            {
+                                // Use existing logic for completed runs
+                                backColor = currentStatus switch
+                                {
+                                    TabStatus.Red => Color.Red,
+                                    TabStatus.Yellow => Color.Orange,
+                                    TabStatus.Green => Color.Green,
+                                    _ => Color.Gray
+                                };
+                            }
+
+                            tab.BackColor = backColor;
+                            tab.ForeColor = foreColor;
+                            break; // Only update the Failed Injections tab
+                        }
+                    }
+
                     tabControl.Invalidate();
                     tabControl.Update();
                 }
 
-                var statusText = currentStatus switch
-                {
-                    TabStatus.Red => "RED (critical failures or price discrepancies)",
-                    TabStatus.Yellow => "YELLOW (managed duplicates detected)",
-                    TabStatus.Green => "GREEN (no issues)",
-                    _ => "UNKNOWN"
-                };
+                var statusText = _isEmailImportRunning ? "BLUE (email import running)" :
+                                currentStatus switch
+                                {
+                                    TabStatus.Red => "RED (critical failures or price discrepancies)",
+                                    TabStatus.Yellow => "YELLOW (managed duplicates detected)",
+                                    TabStatus.Green => "GREEN (no issues)",
+                                    _ => "UNKNOWN"
+                                };
 
                 Console.WriteLine($"🎨 Tab status updated to: {statusText}");
             }
@@ -507,6 +988,7 @@ namespace Mkg_Elcotec_Automation.Forms
                 Console.WriteLine($"❌ Error updating tab status: {ex.Message}");
             }
         }
+
 
         // Modify the DuplicationService event handlers to check the flag:
         // 🔧 FIXED: Proper status priority logic
@@ -567,8 +1049,6 @@ namespace Mkg_Elcotec_Automation.Forms
                     Console.WriteLine($"   📊 Final tab should be: {(realFailureCount > 0 ? "RED" : (_totalDuplicatesInCurrentRun > 0 ? "YELLOW" : "GREEN"))}");
 
                     RefreshRunHistory();
-
-                    // Force final tab update
                     UpdateTabStatus();
                 }
             }
@@ -877,27 +1357,9 @@ namespace Mkg_Elcotec_Automation.Forms
             {
                 LogResult($"🚨 PRICE ALERT: {alert.ArtiCode} - {alert.DiscrepancyPercentage:F1}% difference ({alert.FinancialRisk} risk)");
 
-                // Force RED tab for high financial risks
-                if (alert.FinancialRisk == "HIGH")
-                {
-                    _hasInjectionFailures = true;
-                    UpdateTabStatus();
-                    LogResult($"🔴 HIGH FINANCIAL RISK DETECTED - Manual review required!");
-                }
-            };
-
-            // 🚨 CRITICAL BUSINESS ERRORS - Financial Protection
-            DuplicationService.OnCriticalBusinessErrors += (count) =>
-            {
-                LogResult($"🚨 CRITICAL BUSINESS ERRORS: {count} detected - immediate action required");
-                _hasInjectionFailures = true; // Force RED tab
-                UpdateTabStatus();
             };
         }
-        /// <summary>
-/// Phase 2: Process email with enhanced price validation
-/// Add this call to your email processing workflow
-/// </summary>
+
 private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail emailDetail)
 {
     try
@@ -1876,23 +2338,6 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                 var hasDuplicates = historicalData.HasMkgDuplicatesDetected ||
                                   historicalData.TotalDuplicatesDetected > 0;
 
-                // Apply the same tab color logic as current runs
-                if (hasErrors)
-                {
-                    // Red for errors
-                    ApplyTabColors(Color.Red, Color.White);
-                }
-                else if (hasDuplicates)
-                {
-                    // Orange for duplicates
-                    ApplyTabColors(Color.Orange, Color.White);
-                }
-                else
-                {
-                    // Green for success
-                    ApplyTabColors(Color.Green, Color.White);
-                }
-
                 Console.WriteLine($"🎨 Applied historical tab colors: Errors={hasErrors}, Duplicates={hasDuplicates}");
             }
             catch (Exception ex)
@@ -1900,7 +2345,7 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                 Console.WriteLine($"❌ Error updating tab colors: {ex.Message}");
             }
         }
-
+        
         // 🎯 Helper method to apply tab colors (if not already present)
         private void ApplyTabColors(Color backColor, Color foreColor)
         {
@@ -1918,7 +2363,7 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                 Console.WriteLine($"❌ Error applying tab colors: {ex.Message}");
             }
         }
-
+        
 
         // Replace your TabControl_DrawItem method with this version:
         private void TabControl_DrawItem(object sender, DrawItemEventArgs e)
@@ -2483,9 +2928,6 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                                 _enhancedProgress.IncrementInjectionErrors();
                             }
                         }
-
-                        // Display complete results - NO TRUNCATION
-                        DisplayMkgResults(orderSummary);
                     }
                 }
 
@@ -2520,9 +2962,6 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                                 _enhancedProgress.IncrementInjectionErrors();
                             }
                         }
-
-                        // Display complete results - NO TRUNCATION
-                        DisplayMkgQuoteResults(quoteSummary);
                     }
                 }
 
@@ -2557,11 +2996,12 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                                 _enhancedProgress.IncrementInjectionErrors();
                             }
                         }
-
-                        // Display complete results - NO TRUNCATION
-                        DisplayMkgRevisionResults(revisionSummary);
                     }
                 }
+
+                // Generate comprehensive results and display using extractor
+                string comprehensiveResults = GenerateComprehensiveMkgResults(orderSummary, quoteSummary, revisionSummary);
+                DisplayMkgResults(orderSummary, quoteSummary, revisionSummary, comprehensiveResults);
 
                 // Update Failed Injections Tab with all failure data
                 UpdateFailedInjectionsTab(orderSummary, quoteSummary, revisionSummary);
@@ -2588,6 +3028,7 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
         {
             try
             {
+                // 🎯 SHOW REAL-TIME in lstMkgResults (keep this feature)
                 if (lstMkgResults != null)
                 {
                     if (lstMkgResults.InvokeRequired)
@@ -2607,7 +3048,13 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                     }
                 }
 
-                // Also log to console
+                // 🎯 ALSO log to MKG processing log for collection at end
+                if (!string.IsNullOrEmpty(message))
+                {
+                    EmailWorkFlowService.LogMkgWorkflow(message);
+                }
+
+                // Also log to console for debugging
                 Console.WriteLine(message);
             }
             catch (Exception ex)
@@ -2616,272 +3063,12 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
             }
         }
 
+
+
         #endregion
 
         #region Display Methods
-
-        /// <summary>
-        /// MKG Order Results Display - NO TRUNCATION
-        /// </summary>
-        /// <summary>
-        /// Enhanced MKG Results Display - NO TRUNCATION, shows ALL results
-        /// </summary>
-        /// <summary>
-        /// Enhanced MKG Results Display - NO TRUNCATION, shows ALL results with CORRECT properties
-        /// </summary>
-        /// <summary>
-        /// Enhanced MKG Results Display - Fixed with better duplicate handling, success rates, and comprehensive display
-        /// </summary>
-        private void DisplayMkgResults(
-            MkgOrderInjectionSummary orderSummary,
-            MkgQuoteInjectionSummary quoteSummary = null,
-            MkgRevisionInjectionSummary revisionSummary = null)
-        {
-            try
-            {
-                if (lstMkgResults != null)
-                {
-                    lstMkgResults.Items.Clear();
-
-                    // Header with timestamp
-                    lstMkgResults.Items.Add("🚀 === ENHANCED MKG INJECTION RESULTS ===");
-                    lstMkgResults.Items.Add($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                    lstMkgResults.Items.Add($"User: {Environment.UserName}");
-                    lstMkgResults.Items.Add("");
-
-                    // Calculate comprehensive statistics with duplicate tracking
-                    var totalItems = (orderSummary?.OrderResults?.Count ?? 0) +
-                                   (quoteSummary?.QuoteResults?.Count ?? 0) +
-                                   (revisionSummary?.RevisionResults?.Count ?? 0);
-
-                    var totalSuccess = (orderSummary?.SuccessfulInjections ?? 0) +
-                                     (quoteSummary?.SuccessfulInjections ?? 0) +
-                                     (revisionSummary?.SuccessfulInjections ?? 0);
-
-                    var totalFailed = (orderSummary?.FailedInjections ?? 0) +
-                                    (quoteSummary?.FailedInjections ?? 0) +
-                                    (revisionSummary?.FailedInjections ?? 0);
-
-                    // Calculate duplicates separately
-                    var orderDuplicates = orderSummary?.OrderResults?.Count(r => r.ErrorMessage?.Contains("Duplicate") == true) ?? 0;
-                    var quoteDuplicates = quoteSummary?.QuoteResults?.Count(r => r.ErrorMessage?.Contains("Duplicate") == true) ?? 0;
-                    var revisionDuplicates = revisionSummary?.RevisionResults?.Count(r => r.ErrorMessage?.Contains("Duplicate") == true) ?? 0;
-                    var totalDuplicates = orderDuplicates + quoteDuplicates + revisionDuplicates;
-
-                    var realFailures = totalFailed - totalDuplicates;
-                    var actualSuccessRate = totalItems > 0 ? ((totalSuccess + totalDuplicates) * 100.0 / totalItems) : 0;
-
-                    // Enhanced Summary Statistics
-                    lstMkgResults.Items.Add("📊 === INJECTION SUMMARY ===");
-                    lstMkgResults.Items.Add($"📦 Total Items Processed: {totalItems}");
-                    lstMkgResults.Items.Add($"✅ Successfully Injected: {totalSuccess}");
-                    lstMkgResults.Items.Add($"🔄 Duplicates Skipped: {totalDuplicates}");
-                    lstMkgResults.Items.Add($"❌ Real Failures: {realFailures}");
-                    lstMkgResults.Items.Add($"📈 Effective Success Rate: {actualSuccessRate:F1}% (including duplicates as handled)");
-                    lstMkgResults.Items.Add("");
-
-                    // Orders Section - Enhanced with better duplicate handling
-                    if (orderSummary != null && orderSummary.OrderResults.Any())
-                    {
-                        lstMkgResults.Items.Add("📦 === ORDER INJECTION RESULTS ===");
-                        lstMkgResults.Items.Add($"📊 Headers Created: {orderSummary.TotalOrders}");
-                        lstMkgResults.Items.Add($"📋 Lines Processed: {orderSummary.OrderResults.Count}");
-                        lstMkgResults.Items.Add($"✅ Successful: {orderSummary.SuccessfulInjections}");
-                        lstMkgResults.Items.Add($"🔄 Duplicates: {orderDuplicates}");
-                        lstMkgResults.Items.Add($"❌ Real Failures: {orderSummary.FailedInjections - orderDuplicates}");
-                        lstMkgResults.Items.Add($"⏱️ Processing Time: {orderSummary.ProcessingTime.TotalSeconds:F1}s");
-                        lstMkgResults.Items.Add("");
-
-                        // Group by PO Number with enhanced display
-                        var orderGroups = orderSummary.OrderResults
-                            .GroupBy(r => r.PoNumber)
-                            .ToList();
-
-                        if (orderGroups.Any())
-                        {
-                            lstMkgResults.Items.Add($"📦 Order Details ({orderGroups.Count} unique POs):");
-                            foreach (var group in orderGroups)
-                            {
-                                var lines = group.ToList();
-                                var successCount = lines.Count(l => l.Success);
-                                var duplicateCount = lines.Count(l => l.ErrorMessage?.Contains("Duplicate") == true);
-                                var realFailureCount = lines.Count(l => !l.Success && !(l.ErrorMessage?.Contains("Duplicate") == true));
-                                var poNumber = group.Key ?? "UNKNOWN";
-
-                                lstMkgResults.Items.Add($"   ├── PO: {poNumber} (✅{successCount} 🔄{duplicateCount} ❌{realFailureCount})");
-
-                                foreach (var line in lines)
-                                {
-                                    string status, details;
-                                    if (line.Success)
-                                    {
-                                        status = "✅";
-                                        details = $"{line.ArtiCode}";
-                                        // Add description if available and not empty
-                                        if (!string.IsNullOrEmpty(line.Description))
-                                        {
-                                            details += $" | {line.Description}";
-                                        }
-                                    }
-                                    else if (line.ErrorMessage?.Contains("Duplicate") == true)
-                                    {
-                                        status = "🔄";
-                                        details = $"{line.ArtiCode} | DUPLICATE";
-                                    }
-                                    else
-                                    {
-                                        status = "❌";
-                                        details = $"{line.ArtiCode} | ERROR: {line.ErrorMessage}";
-                                    }
-
-                                    lstMkgResults.Items.Add($"   │   {status} {details}");
-                                }
-                            }
-                        }
-                        lstMkgResults.Items.Add("");
-                    }
-
-                    // Quotes Section - Enhanced display
-                    if (quoteSummary != null && quoteSummary.QuoteResults.Any())
-                    {
-                        lstMkgResults.Items.Add("💰 === QUOTE INJECTION RESULTS ===");
-                        lstMkgResults.Items.Add($"📊 Headers Created: {quoteSummary.TotalQuotes}");
-                        lstMkgResults.Items.Add($"📋 Lines Processed: {quoteSummary.QuoteResults.Count}");
-                        lstMkgResults.Items.Add($"✅ Successful: {quoteSummary.SuccessfulInjections}");
-                        lstMkgResults.Items.Add($"🔄 Duplicates: {quoteDuplicates}");
-                        lstMkgResults.Items.Add($"❌ Real Failures: {quoteSummary.FailedInjections - quoteDuplicates}");
-                        lstMkgResults.Items.Add($"⏱️ Processing Time: {quoteSummary.ProcessingTime.TotalSeconds:F1}s");
-                        lstMkgResults.Items.Add("");
-
-                        // Group by RFQ Number
-                        var quoteGroups = quoteSummary.QuoteResults
-                            .GroupBy(r => r.RfqNumber)
-                            .ToList();
-
-                        if (quoteGroups.Any())
-                        {
-                            lstMkgResults.Items.Add($"💰 Quote Details ({quoteGroups.Count} unique RFQs):");
-                            foreach (var group in quoteGroups)
-                            {
-                                var lines = group.ToList();
-                                var successCount = lines.Count(l => l.Success);
-                                var duplicateCount = lines.Count(l => l.ErrorMessage?.Contains("Duplicate") == true);
-                                var realFailureCount = lines.Count(l => !l.Success && !(l.ErrorMessage?.Contains("Duplicate") == true));
-                                var rfqNumber = group.Key ?? "UNKNOWN";
-
-                                lstMkgResults.Items.Add($"   ├── RFQ: {rfqNumber} (✅{successCount} 🔄{duplicateCount} ❌{realFailureCount})");
-
-                                foreach (var line in lines)
-                                {
-                                    string status, details;
-                                    if (line.Success)
-                                    {
-                                        status = "✅";
-                                        details = $"{line.ArtiCode}";
-                                        if (!string.IsNullOrEmpty(line.QuotedPrice))
-                                        {
-                                            details += $" | Price: {line.QuotedPrice}";
-                                        }
-                                    }
-                                    else if (line.ErrorMessage?.Contains("Duplicate") == true)
-                                    {
-                                        status = "🔄";
-                                        details = $"{line.ArtiCode} | DUPLICATE";
-                                    }
-                                    else
-                                    {
-                                        status = "❌";
-                                        details = $"{line.ArtiCode} | ERROR: {line.ErrorMessage}";
-                                    }
-
-                                    lstMkgResults.Items.Add($"   │   {status} {details}");
-                                }
-                            }
-                        }
-                        lstMkgResults.Items.Add("");
-                    }
-
-                    // Revisions Section - Enhanced display
-                    if (revisionSummary != null && revisionSummary.RevisionResults.Any())
-                    {
-                        lstMkgResults.Items.Add("🔄 === REVISION INJECTION RESULTS ===");
-                        lstMkgResults.Items.Add($"📊 Headers Created: {revisionSummary.TotalRevisions}");
-                        lstMkgResults.Items.Add($"📋 Lines Processed: {revisionSummary.RevisionResults.Count}");
-                        lstMkgResults.Items.Add($"✅ Successful: {revisionSummary.SuccessfulInjections}");
-                        lstMkgResults.Items.Add($"🔄 Duplicates: {revisionDuplicates}");
-                        lstMkgResults.Items.Add($"❌ Real Failures: {revisionSummary.FailedInjections - revisionDuplicates}");
-                        lstMkgResults.Items.Add($"⏱️ Processing Time: {revisionSummary.ProcessingTime.TotalSeconds:F1}s");
-                        lstMkgResults.Items.Add("");
-
-                        // Group by Article Code
-                        var revisionGroups = revisionSummary.RevisionResults
-                            .GroupBy(r => r.ArtiCode)
-                            .ToList();
-
-                        if (revisionGroups.Any())
-                        {
-                            lstMkgResults.Items.Add($"🔄 Revision Details ({revisionGroups.Count} unique articles):");
-                            foreach (var group in revisionGroups)
-                            {
-                                var lines = group.ToList();
-                                var successCount = lines.Count(l => l.Success);
-                                var duplicateCount = lines.Count(l => l.ErrorMessage?.Contains("Duplicate") == true);
-                                var realFailureCount = lines.Count(l => !l.Success && !(l.ErrorMessage?.Contains("Duplicate") == true));
-                                var articleCode = group.Key ?? "UNKNOWN";
-
-                                lstMkgResults.Items.Add($"   ├── Article: {articleCode} (✅{successCount} 🔄{duplicateCount} ❌{realFailureCount})");
-
-                                foreach (var line in lines)
-                                {
-                                    string status, details;
-                                    if (line.Success)
-                                    {
-                                        status = "✅";
-                                        details = $"{line.CurrentRevision}→{line.NewRevision}";
-                                    }
-                                    else if (line.ErrorMessage?.Contains("Duplicate") == true)
-                                    {
-                                        status = "🔄";
-                                        details = $"{line.ArtiCode} | DUPLICATE";
-                                    }
-                                    else
-                                    {
-                                        status = "❌";
-                                        details = $"{line.ArtiCode} | ERROR: {line.ErrorMessage}";
-                                    }
-
-                                    lstMkgResults.Items.Add($"   │   {status} {details}");
-                                }
-                            }
-                        }
-                        lstMkgResults.Items.Add("");
-                    }
-
-                    // 🎯 INCREMENTAL PROCESSING STEPS - Fixed Integration
-                    var mkgProcessingLog = EmailWorkFlowService.GetMkgProcessingLog();
-                    if (mkgProcessingLog.Any())
-                    {
-                        lstMkgResults.Items.Add("🔄 === INCREMENTAL PROCESSING STEPS ===");
-                        foreach (var logEntry in mkgProcessingLog)
-                        {
-                            lstMkgResults.Items.Add($"   {logEntry}");
-                        }
-                        lstMkgResults.Items.Add("");
-                    }
-
-                    lstMkgResults.Items.Add("=== END OF MKG INJECTION RESULTS ===");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error displaying MKG results: {ex.Message}");
-                if (lstMkgResults != null)
-                {
-                    lstMkgResults.Items.Add($"❌ Error displaying results: {ex.Message}");
-                }
-            }
-        }
-        /// <summary>
+       
         /// Quote Results Display - NO TRUNCATION
         /// </summary>
         private void DisplayMkgQuoteResults(MkgQuoteInjectionSummary summary)
@@ -2928,6 +3115,19 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                         lstMkgResults.Items.Add("│");
                     }
                     lstMkgResults.Items.Add("└── END OF QUOTE HEADERS");
+                    lstMkgResults.Items.Add("");
+
+                    // 🎯 ADD INCREMENTAL STEPS HERE AT THE END OF QUOTES
+                    var mkgProcessingLog = EmailWorkFlowService.GetMkgProcessingLog();
+                    if (mkgProcessingLog.Any())
+                    {
+                        lstMkgResults.Items.Add("🔄 === INCREMENTAL PROCESSING STEPS ===");
+                        foreach (var logEntry in mkgProcessingLog)
+                        {
+                            lstMkgResults.Items.Add($"   {logEntry}");
+                        }
+                        lstMkgResults.Items.Add("");
+                    }
                 }
             }
             catch (Exception ex)
@@ -3713,26 +3913,59 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
             {
                 if (listBox != null && listBox.Items.Count > 0)
                 {
-                    var sb = new StringBuilder();
-                    sb.AppendLine($"=== {tabName} ===");
-                    sb.AppendLine($"Exported at: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                    sb.AppendLine();
+                    var items = new List<string>();
 
                     foreach (var item in listBox.Items)
                     {
-                        sb.AppendLine(item.ToString());
+                        // Clean the text - remove emojis and special formatting that break JSON
+                        string cleanText = item.ToString()
+                            .Replace("📊", "")
+                            .Replace("✅", "")
+                            .Replace("❌", "")
+                            .Replace("🔄", "")
+                            .Replace("📧", "")
+                            .Replace("💾", "")
+                            .Replace("🎯", "")
+                            .Replace("📦", "")
+                            .Replace("📋", "")
+                            .Replace("💰", "")
+                            .Replace("⚠️", "")
+                            .Replace("⏭️", "")
+                            .Replace("🔧", "")
+                            .Replace("💱", "")
+                            .Trim();
+
+                        if (!string.IsNullOrWhiteSpace(cleanText))
+                        {
+                            items.Add(cleanText);
+                        }
                     }
 
-                    Clipboard.SetText(sb.ToString());
+                    var tabData = new
+                    {
+                        timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                        tabName = tabName,
+                        itemCount = items.Count,
+                        items = items.ToArray()
+                    };
+
+                    var options = new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    };
+
+                    string jsonContent = JsonSerializer.Serialize(tabData, options);
+                    Clipboard.SetText(jsonContent);
 
                     bool showModal = bool.Parse(ConfigurationManager.AppSettings["UI:ShowModalBoxOnCopy"] ?? "true");
 
                     if (showModal)
                     {
-                        MessageBox.Show($"{tabName} copied to clipboard!", "Copy Tab", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show($"{tabName} copied as valid JSON to clipboard!", "Copy Tab", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
 
-                    toolStripStatusLabel.Text = $"{tabName} copied to clipboard!";
+                    toolStripStatusLabel.Text = $"{tabName} copied as JSON to clipboard!";
                 }
                 else
                 {
@@ -3754,61 +3987,77 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
             }
         }
 
+        private string[] GetCleanItemsFromListBox(ListBox listBox)
+        {
+            var items = new List<string>();
+
+            foreach (var item in listBox.Items)
+            {
+                // Clean the text - remove emojis and special formatting that break JSON
+                string cleanText = item.ToString()
+                    .Replace("📊", "")
+                    .Replace("✅", "")
+                    .Replace("❌", "")
+                    .Replace("🔄", "")
+                    .Replace("📧", "")
+                    .Replace("💾", "")
+                    .Replace("🎯", "")
+                    .Replace("📦", "")
+                    .Replace("📋", "")
+                    .Replace("💰", "")
+                    .Replace("⚠️", "")
+                    .Replace("⏭️", "")
+                    .Replace("🔧", "")
+                    .Replace("💱", "")
+                    .Replace("⏭️", "")
+                    .Trim();
+
+                if (!string.IsNullOrWhiteSpace(cleanText))
+                {
+                    items.Add(cleanText);
+                }
+            }
+
+            return items.ToArray();
+        }
+
+        // Replace the existing CopyAllTabsToClipboard method with this JSON version:
+
         private void CopyAllTabsToClipboard()
         {
             try
             {
-                if ((lstEmailImportResults?.Items.Count > 0) || (lstMkgResults?.Items.Count > 0) || (lstFailedInjections?.Items.Count > 0))
+                var allTabsData = new
                 {
-                    var sb = new StringBuilder();
-                    sb.AppendLine("=== MKG ELCOTEC AUTOMATION - ALL TABS EXPORT ===");
-                    sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                    sb.AppendLine($"Exported by: {Environment.UserName}");
-                    sb.AppendLine();
-
-                    if (lstEmailImportResults?.Items.Count > 0)
+                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    tabs = new
                     {
-                        sb.AppendLine("=== EMAIL IMPORT RESULTS ===");
-                        foreach (var item in lstEmailImportResults.Items)
-                        {
-                            sb.AppendLine(item.ToString());
-                        }
-                        sb.AppendLine();
+                        emailImport = GetTabContentAsJson(lstEmailImportResults, "Email Import"),
+                        mkgResults = GetTabContentAsJson(lstMkgResults, "MKG Results"),
+                        failedInjections = GetTabContentAsJson(lstFailedInjections, "Failed Injections")
                     }
+                };
 
-                    if (lstMkgResults?.Items.Count > 0)
-                    {
-                        sb.AppendLine("=== MKG TEST RESULTS ===");
-                        foreach (var item in lstMkgResults.Items)
-                        {
-                            sb.AppendLine(item.ToString());
-                        }
-                        sb.AppendLine();
-                    }
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
 
-                    if (lstFailedInjections?.Items.Count > 0)
-                    {
-                        sb.AppendLine("=== FAILED INJECTIONS ANALYSIS ===");
-                        foreach (var item in lstFailedInjections.Items)
-                        {
-                            sb.AppendLine(item.ToString());
-                        }
-                    }
+                string jsonContent = JsonSerializer.Serialize(allTabsData, options);
 
-                    sb.AppendLine();
-                    sb.AppendLine("=== END OF EXPORT ===");
-                    sb.AppendLine($"Export completed: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-
-                    Clipboard.SetText(sb.ToString());
+                if (!string.IsNullOrEmpty(jsonContent))
+                {
+                    Clipboard.SetText(jsonContent);
 
                     bool showModal = bool.Parse(ConfigurationManager.AppSettings["UI:ShowModalBoxOnCopy"] ?? "true");
 
                     if (showModal)
                     {
-                        MessageBox.Show("All tabs copied to clipboard!", "Copy All", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show("All tabs copied as valid JSON to clipboard!", "Copy All", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
 
-                    toolStripStatusLabel.Text = "All tabs copied to clipboard!";
+                    toolStripStatusLabel.Text = "All tabs copied as JSON to clipboard!";
                 }
                 else
                 {
@@ -3830,6 +4079,46 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
             }
         }
 
+        private object GetTabContentAsJson(ListBox listBox, string tabName)
+        {
+            if (listBox == null || listBox.Items.Count == 0)
+            {
+                return new { tabName = tabName, items = new string[0], status = "empty" };
+            }
+
+            var items = new List<string>();
+            foreach (var item in listBox.Items)
+            {
+                // Clean the text - remove emojis and special formatting
+                string cleanText = item.ToString()
+                    .Replace("📊", "")
+                    .Replace("✅", "")
+                    .Replace("❌", "")
+                    .Replace("🔄", "")
+                    .Replace("📧", "")
+                    .Replace("💾", "")
+                    .Replace("🎯", "")
+                    .Replace("📦", "")
+                    .Replace("📋", "")
+                    .Replace("💰", "")
+                    .Replace("⚠️", "")
+                    .Replace("⏭️", "")
+                    .Trim();
+
+                if (!string.IsNullOrWhiteSpace(cleanText))
+                {
+                    items.Add(cleanText);
+                }
+            }
+
+            return new
+            {
+                tabName = tabName,
+                items = items.ToArray(),
+                itemCount = items.Count,
+                status = "populated"
+            };
+        }
         private void ExportResultsToFile()
         {
             try
@@ -4344,6 +4633,21 @@ private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail email
                                 }
                             }
                         }
+                    }
+
+                    // 🎯 NEW: ADD INCREMENTAL PROCESSING STEPS
+                    var processingSteps = EmailWorkFlowService.GetProcessingLog();
+                    if (processingSteps?.Any() == true)
+                    {
+                        lstEmailImportResults.Items.Add("🔄 === INCREMENTAL PROCESSING STEPS ===");
+                        lstEmailImportResults.Items.Add($"📊 Total Steps: {processingSteps.Count}");
+                        lstEmailImportResults.Items.Add("");
+
+                        foreach (var step in processingSteps)
+                        {
+                            lstEmailImportResults.Items.Add($"   {step}");
+                        }
+                        lstEmailImportResults.Items.Add("");
                     }
 
                     // Processing Performance
