@@ -3199,8 +3199,8 @@ namespace Mkg_Elcotec_Automation.Forms
                         totalFailed += revisionSummary.FailedInjections;
                     }
                 }
-                ForceBusinessError();
-                ForceInjectionError();
+                //ForceBusinessError();
+                //ForceInjectionError();
                 
                 Console.WriteLine("🔍 COUNTING INJECTION ERRORS:");
 

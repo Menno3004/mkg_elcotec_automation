@@ -1,21 +1,21 @@
-﻿using System;
-using System.Globalization;
-using System.IO;
-using HtmlAgilityPack;
+﻿// ===============================================
+// ENHANCED QuoteHtmlParser.cs - Better Quote Data Extraction
+// Focuses on extracting real quote data from emails, especially prices
+// ===============================================
+
+using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
+using HtmlAgilityPack;
 using Mkg_Elcotec_Automation.Models;
 
-namespace Mkg_Elcotec_Automation
+namespace Mkg_Elcotec_Automation.Utilities.Input.Html
 {
-    class QuoteHtmlParser
+    public class QuoteHtmlParser
     {
-        public QuoteHtmlParser() { }
-
         public static HtmlDocument Doc { get; set; }
-
         private static List<string> DebugLog = new List<string>();
 
         public static void ClearDebugLog() => DebugLog.Clear();
@@ -25,194 +25,15 @@ namespace Mkg_Elcotec_Automation
         {
             var logEntry = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
             DebugLog.Add(logEntry);
-            Console.WriteLine($"[QUOTE_HTML_PARSER] {logEntry}");
+            Console.WriteLine($"[ENHANCED_QUOTE_PARSER] {logEntry}");
         }
 
-        public static HtmlDocument LoadHtml(string body, string folder)
-        {
-            LogDebug($"Loading HTML content, length: {body?.Length ?? 0}");
-
-            if (string.IsNullOrWhiteSpace(body))
-            {
-                LogDebug("ERROR: HTML body is null or empty");
-                return null;
-            }
-
-            try
-            {
-                HtmlDocument doc = new HtmlDocument();
-                doc.LoadHtml(body);
-                Doc = doc;
-
-                // Debug: Check document structure
-                LogDebug($"HTML document loaded successfully");
-                LogDebug($"Document has {doc.DocumentNode?.ChildNodes?.Count ?? 0} child nodes");
-
-                // Check for quote_lines table
-                var quoteTable = doc.DocumentNode?.SelectSingleNode("//table[@id='quote_lines']");
-                LogDebug($"Quote lines table found: {quoteTable != null}");
-
-                if (quoteTable != null)
-                {
-                    var rows = quoteTable.SelectNodes(".//tr");
-                    LogDebug($"Quote table has {rows?.Count ?? 0} rows");
-                }
-
-                // Check for RFQ tables
-                var rfqTable = doc.DocumentNode?.SelectSingleNode("//table[@id='rfq_lines']");
-                LogDebug($"RFQ lines table found: {rfqTable != null}");
-
-                // Check for other potential quote tables
-                var allTables = doc.DocumentNode?.SelectNodes("//table");
-                LogDebug($"Total tables in document: {allTables?.Count ?? 0}");
-
-                if (allTables != null)
-                {
-                    for (int i = 0; i < allTables.Count; i++)
-                    {
-                        var table = allTables[i];
-                        var tableId = table.GetAttributeValue("id", "no-id");
-                        var tableClass = table.GetAttributeValue("class", "no-class");
-                        LogDebug($"Table {i + 1}: id='{tableId}', class='{tableClass}'");
-                    }
-                }
-
-                return doc;
-            }
-            catch (Exception ex)
-            {
-                LogDebug($"ERROR loading HTML: {ex.Message}");
-                return null;
-            }
-        }
-
-        public static string FormatDate(string dateStr, string currentFormat = "dd/MM/yyyy", string desiredFormat = "dd-MM-yyyy")
-        {
-            if (string.IsNullOrWhiteSpace(dateStr))
-            {
-                LogDebug($"Date formatting: input is null/empty");
-                return string.Empty;
-            }
-
-            try
-            {
-                DateTime date = DateTime.ParseExact(dateStr.Trim(), currentFormat, CultureInfo.InvariantCulture);
-                string formattedDate = date.ToString(desiredFormat);
-                LogDebug($"Date formatted: '{dateStr}' -> '{formattedDate}'");
-                return formattedDate;
-            }
-            catch (FormatException ex)
-            {
-                LogDebug($"Date formatting failed for '{dateStr}': {ex.Message}");
-                return string.Empty;
-            }
-        }
-
-        public (string rfqNumber, string quoteDate, string validUntil) ExtractRfqInfo(string body)
-        {
-            LogDebug("Extracting RFQ info from HTML body");
-
-            string rfqNumber = "null";
-            string quoteDate = "null";
-            string validUntil = "null";
-
-            if (!body.Contains("rfq_info") && !body.Contains("quote_info"))
-            {
-                LogDebug("No rfq_info or quote_info found in body");
-                return (rfqNumber, quoteDate, validUntil);
-            }
-
-            try
-            {
-                var table = Doc.DocumentNode.SelectSingleNode("//td[@id='rfq_info']") ??
-                           Doc.DocumentNode.SelectSingleNode("//td[@id='quote_info']");
-                if (table == null)
-                {
-                    LogDebug("rfq_info/quote_info table element not found");
-                    return (rfqNumber, quoteDate, validUntil);
-                }
-
-                var rows = table.SelectNodes(".//tr");
-                LogDebug($"Found {rows?.Count ?? 0} rows in rfq_info table");
-
-                if (rows != null && rows.Count >= 3)
-                {
-                    // Extract RFQ Number
-                    string rawRfqNumber = rows[0].InnerText;
-                    LogDebug($"Raw RFQ number text: '{rawRfqNumber}'");
-
-                    var words = rawRfqNumber.Split(" ");
-                    if (words.Length > 2)
-                    {
-                        int endRfqNumberIndex = words[2].IndexOf('&');
-                        if (endRfqNumberIndex != -1)
-                        {
-                            rfqNumber = words[2].Substring(0, endRfqNumberIndex);
-                            LogDebug($"Extracted RFQ number: '{rfqNumber}'");
-                        }
-                        else
-                        {
-                            rfqNumber = words[2];
-                            LogDebug($"Extracted RFQ number (no delimiter): '{rfqNumber}'");
-                        }
-                    }
-
-                    // Extract Quote Date
-                    string rawQuoteDate = rows[1].InnerText;
-                    LogDebug($"Raw quote date text: '{rawQuoteDate}'");
-
-                    var words2 = rawQuoteDate.Split(" ");
-                    if (words2.Length > 1)
-                    {
-                        int endQuoteDateIndex = words2[1].IndexOf("&");
-                        if (endQuoteDateIndex != -1)
-                        {
-                            quoteDate = words2[1].Substring(0, endQuoteDateIndex);
-                            LogDebug($"Extracted quote date: '{quoteDate}'");
-                        }
-                        else
-                        {
-                            quoteDate = words2[1];
-                            LogDebug($"Extracted quote date (no delimiter): '{quoteDate}'");
-                        }
-                    }
-
-                    // Extract Valid Until (if available)
-                    if (rows.Count > 2)
-                    {
-                        string rawValidUntil = rows[2].InnerText;
-                        LogDebug($"Raw valid until text: '{rawValidUntil}'");
-
-                        var words3 = rawValidUntil.Split(" ");
-                        if (words3.Length > 1)
-                        {
-                            int endValidUntilIndex = words3[1].IndexOf("&");
-                            if (endValidUntilIndex != -1)
-                            {
-                                validUntil = words3[1].Substring(0, endValidUntilIndex);
-                                LogDebug($"Extracted valid until: '{validUntil}'");
-                            }
-                            else
-                            {
-                                validUntil = words3[1];
-                                LogDebug($"Extracted valid until (no delimiter): '{validUntil}'");
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                LogDebug($"ERROR extracting RFQ info: {ex.Message}");
-            }
-
-            return (rfqNumber, quoteDate, validUntil);
-        }
-
+        /// <summary>
+        /// 🔥 ENHANCED: Extract quote lines for Weir domain with better price extraction
+        /// </summary>
         public List<QuoteLine> ExtractQuoteLinesWeirDomain()
         {
-            LogDebug("=== STARTING WEIR DOMAIN QUOTE EXTRACTION ===");
-            ClearDebugLog();
+            LogDebug("=== STARTING ENHANCED WEIR DOMAIN QUOTE EXTRACTION ===");
 
             try
             {
@@ -224,438 +45,521 @@ namespace Mkg_Elcotec_Automation
                     return quoteLines;
                 }
 
-                // Search for the table with id 'quote_lines' or 'rfq_lines'
+                // 🔥 STEP 1: Extract global price and RFQ info from email text
+                var globalQuoteInfo = ExtractGlobalQuoteInfo();
+                LogDebug($"Global quote info: RFQ={globalQuoteInfo.rfqNumber}, Price={globalQuoteInfo.totalPrice}");
+
+                // 🔥 STEP 2: Find and process quote/order table (quotes often use order tables)
                 var table = Doc.DocumentNode.SelectSingleNode("//table[@id='quote_lines']") ??
-                           Doc.DocumentNode.SelectSingleNode("//table[@id='rfq_lines']");
+                           Doc.DocumentNode.SelectSingleNode("//table[@id='rfq_lines']") ??
+                           Doc.DocumentNode.SelectSingleNode("//table[@id='order_lines']") ??
+                           Doc.DocumentNode.SelectSingleNode("//table[contains(@class, 'quote')]") ??
+                           Doc.DocumentNode.SelectSingleNode("//table[.//td[contains(text(), 'RFQ')]]") ??
+                           Doc.DocumentNode.SelectNodes("//table")?.FirstOrDefault();
 
                 if (table == null)
                 {
-                    LogDebug("ERROR: No table with id 'quote_lines' or 'rfq_lines' found");
-
-                    // Try alternative selectors
-                    var allTables = Doc.DocumentNode.SelectNodes("//table");
-                    LogDebug($"Found {allTables?.Count ?? 0} tables in document");
-
-                    if (allTables != null)
-                    {
-                        foreach (var t in allTables)
-                        {
-                            var tableId = t.GetAttributeValue("id", "");
-                            var tableClass = t.GetAttributeValue("class", "");
-                            LogDebug($"Table found: id='{tableId}', class='{tableClass}'");
-
-                            // Look for tables that might contain quote data
-                            if (tableId.ToLower().Contains("quote") || tableId.ToLower().Contains("rfq") ||
-                                tableClass.ToLower().Contains("quote") || tableClass.ToLower().Contains("rfq"))
-                            {
-                                table = t;
-                                LogDebug($"Using alternative table: id='{tableId}', class='{tableClass}'");
-                                break;
-                            }
-                        }
-                    }
-
-                    if (table == null)
-                    {
-                        LogDebug("No suitable quote table found");
-                        return quoteLines;
-                    }
+                    LogDebug("ERROR: No suitable table found for quote extraction");
+                    return quoteLines;
                 }
-
-                LogDebug("✓ Found quote lines table for Weir domain");
 
                 var rows = table.SelectNodes(".//tr");
                 LogDebug($"Found {rows?.Count ?? 0} rows in quote table");
 
                 if (rows == null) return quoteLines;
 
-                // Extract RFQ info once for all lines
-                var rfqInfo = ExtractRfqInfo(Doc.DocumentNode.InnerHtml);
-                LogDebug($"RFQ Info: Number='{rfqInfo.rfqNumber}', Date='{rfqInfo.quoteDate}', ValidUntil='{rfqInfo.validUntil}'");
-
                 int rowIndex = 0;
                 foreach (var row in rows)
                 {
                     rowIndex++;
-                    LogDebug($"\n--- Processing Weir Quote Row {rowIndex} ---");
+                    LogDebug($"\n--- Processing Enhanced Quote Row {rowIndex} ---");
 
                     var columns = row.SelectNodes(".//td");
-                    if (columns == null)
+                    if (columns == null || columns.Count < 3)
                     {
-                        LogDebug($"Row {rowIndex}: No <td> elements found");
-                        continue;
-                    }
-
-                    if (columns.Count < 6) // Minimum columns for quote line
-                    {
-                        LogDebug($"Row {rowIndex}: Not enough columns ({columns.Count} < 6)");
+                        LogDebug($"Row {rowIndex}: Insufficient columns ({columns?.Count ?? 0})");
                         continue;
                     }
 
                     try
                     {
-                        // Column structure for quote lines (adjust based on actual structure):
-                        // 0: Line Number
-                        // 1: Article Code
-                        // 2: Description
-                        // 3: Quantity
-                        // 4: Unit
-                        // 5: Quoted Price
-                        // 6: Customer Part Number (if available)
-                        // 7: Drawing Number (if available)
-                        // 8: Revision (if available)
+                        // 🔥 ENHANCED: Extract quote data using multiple methods
+                        var quoteData = ExtractEnhancedQuoteData(columns, rowIndex, globalQuoteInfo);
 
-                        string lineNumber = columns[0].InnerText?.Trim() ?? rowIndex.ToString();
-                        string artiCode = columns[1].InnerText?.Trim() ?? "";
-                        string description = columns[2].InnerText?.Trim() ?? "";
-                        string quantity = columns[3].InnerText?.Trim() ?? "1";
-                        string unit = columns[4].InnerText?.Trim() ?? "PCS";
-                        string quotedPrice = columns[5].InnerText?.Trim() ?? "0.00";
-
-                        // Optional columns
-                        string customerPartNumber = columns.Count > 6 ? columns[6].InnerText?.Trim() ?? "" : "";
-                        string drawingNumber = columns.Count > 7 ? columns[7].InnerText?.Trim() ?? "" : "";
-                        string revision = columns.Count > 8 ? columns[8].InnerText?.Trim() ?? "00" : "00";
-
-                        LogDebug($"Row {rowIndex}: Raw data - Line: '{lineNumber}', ArtiCode: '{artiCode}', Desc: '{description}', Qty: '{quantity}', Unit: '{unit}', Price: '{quotedPrice}'");
-
-                        // Skip header rows or empty rows
-                        if (string.IsNullOrWhiteSpace(artiCode) ||
-                            artiCode.ToLower().Contains("article") ||
-                            artiCode.ToLower().Contains("code") ||
-                            artiCode.ToLower().Contains("line") ||
-                            description.ToLower().Contains("description"))
+                        if (string.IsNullOrEmpty(quoteData.artiCode) || quoteData.artiCode.Contains("SUBCON:"))
                         {
-                            LogDebug($"Row {rowIndex}: Skipping header or empty row");
+                            LogDebug($"Row {rowIndex}: Invalid article code, skipping");
                             continue;
                         }
 
-                        // Clean price data
-                        quotedPrice = CleanPrice(quotedPrice);
-                        quantity = CleanQuantity(quantity);
-
+                        // 🔥 Create enhanced quote line
                         var quote = new QuoteLine(
-                            lineNumber: lineNumber,
-                            artiCode: artiCode,
-                            description: description,
-                            quantity: quantity,
-                            unit: unit,
-                            quotedPrice: quotedPrice,
-                            customerPartNumber: customerPartNumber,
-                            rfqNumber: rfqInfo.rfqNumber != "null" ? rfqInfo.rfqNumber : "",
-                            drawingNumber: drawingNumber,
-                            revision: revision,
-                            requestedDeliveryDate: "",
-                            quoteDate: rfqInfo.quoteDate != "null" ? rfqInfo.quoteDate : DateTime.Now.ToString("dd-MM-yyyy"),
+                            artiCode: quoteData.artiCode,
+                            description: quoteData.description,
+                            rfqNumber: quoteData.rfqNumber,
+                            drawingNumber: quoteData.drawingNumber,
+                            revision: quoteData.revision,
+                            requestedDeliveryDate: quoteData.requestedDeliveryDate,
+                            quoteDate: quoteData.quoteDate,
+                            quotedPrice: quoteData.quotedPrice,
+                            validUntil: quoteData.validUntil,
                             quoteStatus: "Draft",
-                            priority: DeterminePriority(quotedPrice),
-                            validUntil: rfqInfo.validUntil != "null" ? rfqInfo.validUntil : DateTime.Now.AddDays(30).ToString("dd-MM-yyyy"),
-                            extractionMethod: "WEIR_DOMAIN_HTML",
+                            priority: DeterminePriority(quoteData.quotedPrice),
+                            extractionMethod: "ENHANCED_WEIR_HTML",
                             extractionDomain: "weir.com"
                         );
 
-                        LogDebug($"Row {rowIndex}: ✓ Quote line created - RFQ: {quote.RfqNumber}, Article: {artiCode}, Price: {quotedPrice}");
-
                         quoteLines.Add(quote);
-                        LogDebug($"Row {rowIndex}: ✓ Quote line added successfully");
-
+                        LogDebug($"Row {rowIndex}: ✅ Enhanced quote created - Article: {quoteData.artiCode}, Price: {quoteData.quotedPrice}");
                     }
-                    catch (Exception rowEx)
+                    catch (Exception ex)
                     {
-                        LogDebug($"Row {rowIndex}: ERROR processing row: {rowEx.Message}");
-                        continue; // Continue with next row
+                        LogDebug($"Row {rowIndex}: ERROR processing: {ex.Message}");
+                        continue;
                     }
                 }
 
-                LogDebug($"\n=== WEIR QUOTE EXTRACTION COMPLETE ===");
-                LogDebug($"Successfully extracted {quoteLines.Count} quote lines");
+                LogDebug($"\n=== ENHANCED WEIR QUOTE EXTRACTION COMPLETE ===");
+                LogDebug($"Successfully extracted {quoteLines.Count} enhanced quote lines");
 
                 return quoteLines;
             }
             catch (Exception ex)
             {
-                LogDebug($"CRITICAL ERROR in ExtractQuoteLinesWeirDomain: {ex.Message}");
-                LogDebug($"Stack trace: {ex.StackTrace}");
+                LogDebug($"CRITICAL ERROR in enhanced Weir quote extraction: {ex.Message}");
                 return new List<QuoteLine>();
             }
         }
 
-        public List<QuoteLine> ExtractQuoteLinesOutlookForwardMail()
+        /// <summary>
+        /// 🔥 NEW: Extract global quote information from email text content
+        /// </summary>
+        private (string rfqNumber, string totalPrice, string quoteDate, string validUntil) ExtractGlobalQuoteInfo()
         {
-            LogDebug("=== STARTING OUTLOOK FORWARD MAIL QUOTE EXTRACTION ===");
-            ClearDebugLog();
-
             try
             {
-                var quoteLines = new List<QuoteLine>();
+                LogDebug("🔍 Extracting global quote info from email text");
 
-                if (Doc == null)
+                var allText = Doc.DocumentNode.InnerText;
+                LogDebug($"Email text preview: {allText.Substring(0, Math.Min(300, allText.Length))}...");
+
+                // Extract RFQ number
+                var rfqNumber = ExtractRfqNumber(allText);
+
+                // Extract total price (same patterns as orders)
+                var totalPrice = ExtractTotalPrice(allText);
+
+                // Extract dates
+                var quoteDate = DateTime.Now.ToString("dd-MM-yyyy");
+                var validUntil = DateTime.Now.AddDays(30).ToString("dd-MM-yyyy");
+
+                LogDebug($"✅ Global quote info - RFQ: {rfqNumber}, Price: {totalPrice}");
+                return (rfqNumber, totalPrice, quoteDate, validUntil);
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"❌ Error extracting global quote info: {ex.Message}");
+                return ("", "0.00", DateTime.Now.ToString("dd-MM-yyyy"), DateTime.Now.AddDays(30).ToString("dd-MM-yyyy"));
+            }
+        }
+
+        /// <summary>
+        /// 🔥 Extract RFQ number from text
+        /// </summary>
+        private string ExtractRfqNumber(string text)
+        {
+            var rfqPatterns = new[]
+            {
+                @"RFQ[:\s#]*([A-Z0-9\-]{6,20})",
+                @"Request\s+for\s+Quote[:\s#]*([A-Z0-9\-]{6,20})",
+                @"Quote\s+Request[:\s#]*([A-Z0-9\-]{6,20})",
+                @"Purchase\s+Order\s+#(\d{10})", // Sometimes RFQ uses PO format
+            };
+
+            foreach (var pattern in rfqPatterns)
+            {
+                var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+                if (match.Success)
                 {
-                    LogDebug("ERROR: Document is null");
-                    return quoteLines;
+                    var rfqNumber = "RFQ-" + match.Groups[1].Value;
+                    LogDebug($"🎯 RFQ Number found: {rfqNumber}");
+                    return rfqNumber;
                 }
+            }
 
-                var table = Doc.DocumentNode.SelectSingleNode("//table[@id='quote_lines']") ??
-                           Doc.DocumentNode.SelectSingleNode("//table[@id='rfq_lines']");
+            // Generate RFQ number based on current time
+            var generatedRfq = $"RFQ-AUTO-{DateTime.Now:yyyyMMddHHmm}";
+            LogDebug($"🎯 Generated RFQ Number: {generatedRfq}");
+            return generatedRfq;
+        }
 
-                if (table == null)
+        /// <summary>
+        /// 🔥 Extract total price using same patterns as orders
+        /// </summary>
+        private string ExtractTotalPrice(string text)
+        {
+            var pricePatterns = new[]
+            {
+                @"(?:Total|Quote|Price)[:\s]*(\d+[.,]\d{3})[.,](\d{2})\s*EUR",   // "Total: 35.520,00 EUR"
+                @"(?:Total|Quote|Price)[:\s]*(\d+)[.,](\d{2})\s*EUR",            // "Total: 980,00 EUR"
+                @"(\d+[.,]\d{3})[.,](\d{2})\s*EUR",                              // "35.520,00 EUR"
+                @"(\d+)[.,](\d{2})\s*EUR",                                       // "980,00 EUR"
+            };
+
+            foreach (var pattern in pricePatterns)
+            {
+                var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+                if (match.Success)
                 {
-                    LogDebug("ERROR: No table with id 'quote_lines' or 'rfq_lines' found for Outlook forward mail");
-                    return quoteLines;
-                }
-
-                LogDebug("✓ Found quote lines table for Outlook forward mail");
-
-                var rows = table.SelectNodes(".//tr");
-                LogDebug($"Found {rows?.Count ?? 0} rows in quote table");
-
-                if (rows == null) return quoteLines;
-
-                // Extract RFQ info once for all lines
-                var rfqInfo = ExtractRfqInfo(Doc.DocumentNode.InnerHtml);
-                LogDebug($"RFQ Info: Number='{rfqInfo.rfqNumber}', Date='{rfqInfo.quoteDate}', ValidUntil='{rfqInfo.validUntil}'");
-
-                int rowIndex = 0;
-                foreach (var row in rows)
-                {
-                    rowIndex++;
-                    LogDebug($"\n--- Processing Outlook Quote Row {rowIndex} ---");
-
-                    var columns = row.SelectNodes(".//td");
-                    if (columns == null)
+                    string totalPriceStr;
+                    if (match.Groups.Count >= 3 && !string.IsNullOrEmpty(match.Groups[2].Value))
                     {
-                        LogDebug($"Row {rowIndex}: No <td> elements found");
-                        continue;
+                        // Format with thousands: 35.520,00 → 35520.00
+                        totalPriceStr = match.Groups[1].Value.Replace(",", "").Replace(".", "") + "." + match.Groups[2].Value;
+                    }
+                    else
+                    {
+                        // Simple format: 980,00 → 980.00
+                        totalPriceStr = match.Groups[1].Value.Replace(",", ".");
                     }
 
-                    if (columns.Count < 7)
+                    if (decimal.TryParse(totalPriceStr, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal totalPrice))
                     {
-                        LogDebug($"Row {rowIndex}: Not enough columns ({columns.Count} < 7)");
-                        continue;
+                        var formatted = totalPrice.ToString("F2", CultureInfo.InvariantCulture);
+                        LogDebug($"🎯 Total price found: {formatted}");
+                        return formatted;
                     }
+                }
+            }
 
-                    try
+            return "0.00";
+        }
+
+        /// <summary>
+        /// 🔥 ENHANCED: Extract comprehensive quote data from table row
+        /// </summary>
+        private (string artiCode, string description, string rfqNumber, string drawingNumber, string revision,
+                 string requestedDeliveryDate, string quoteDate, string quotedPrice, string totalPrice, string leadTime, string validUntil)
+                ExtractEnhancedQuoteData(HtmlNodeCollection columns, int rowIndex, (string rfqNumber, string totalPrice, string quoteDate, string validUntil) globalQuoteInfo)
+        {
+            try
+            {
+                LogDebug($"Row {rowIndex}: Starting enhanced quote data extraction");
+
+                // 🔥 Extract article code (same logic as orders)
+                var artiCode = ExtractArticleCode(columns, rowIndex);
+
+                // 🔥 Extract description
+                var description = ExtractDescription(columns, rowIndex);
+
+                // 🔥 Extract technical details
+                var (drawingNumber, revision) = ExtractTechnicalDetails(columns, rowIndex);
+
+                // 🔥 Extract prices (enhanced with global data)
+                var (quotedPrice, totalPrice) = ExtractEnhancedQuotePrices(columns, rowIndex, globalQuoteInfo);
+
+                // 🔥 Extract dates and lead time
+                var leadTime = ExtractLeadTime(columns, rowIndex);
+                var requestedDeliveryDate = DateTime.Now.AddDays(14).ToString("dd-MM-yyyy");
+
+                LogDebug($"Row {rowIndex}: ✅ Enhanced quote extraction complete - Article: {artiCode}, Price: {quotedPrice}");
+
+                return (artiCode, description, globalQuoteInfo.rfqNumber, drawingNumber, revision,
+                       requestedDeliveryDate, globalQuoteInfo.quoteDate, quotedPrice, totalPrice, leadTime, globalQuoteInfo.validUntil);
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Row {rowIndex}: ERROR in enhanced quote extraction: {ex.Message}");
+                return ("", "", "", "", "", "", "", "0.00", "0.00", "14", "");
+            }
+        }
+
+        /// <summary>
+        /// 🔥 Extract article code (reuse logic from order parser)
+        /// </summary>
+        private string ExtractArticleCode(HtmlNodeCollection columns, int rowIndex)
+        {
+            try
+            {
+                // Method 1: From column 2 HTML content
+                if (columns.Count > 2)
+                {
+                    var dataString = columns[2].InnerHtml;
+                    int descriptionIndex = dataString.IndexOf("<");
+                    if (descriptionIndex > 0)
                     {
-                        string dataString = columns[2].InnerHtml;
-                        LogDebug($"Row {rowIndex}: Processing column 2 HTML (length: {dataString?.Length ?? 0})");
-
-                        // Skip description header
-                        if (dataString.Contains(">Description </span>") || dataString.Contains(">RFQ Item </span>"))
-                        {
-                            LogDebug($"Row {rowIndex}: Header row, skipping");
-                            continue;
-                        }
-
-                        // Extract description for Outlook forward format (similar to order processing)
-                        dataString = dataString.Substring(Math.Min(90, dataString.Length)); // Skip initial formatting
-                        int firstGtIndex = dataString.IndexOf(">");
-                        if (firstGtIndex != -1)
-                        {
-                            dataString = dataString.Substring(firstGtIndex + 1);
-                        }
-
-                        int descriptionEndIndex = dataString.IndexOf("</span>");
-                        if (descriptionEndIndex == -1)
-                        {
-                            LogDebug($"Row {rowIndex}: No description end tag found");
-                            continue;
-                        }
-
-                        string description = dataString.Substring(0, descriptionEndIndex);
-                        if (string.IsNullOrEmpty(description) || description.Contains("Description") || description.Contains("RFQ Item"))
-                        {
-                            LogDebug($"Row {rowIndex}: Invalid description, skipping");
-                            continue;
-                        }
-
-                        LogDebug($"Row {rowIndex}: Description: '{description}'");
-
-                        string artiCode = description.Contains(" ") ?
-                            description.Substring(0, description.IndexOf(" ")) :
-                            description;
+                        string description = dataString.Substring(0, descriptionIndex);
+                        string artiCode = description.Split(' ')[0];
 
                         if (artiCode.Contains('A'))
                         {
                             artiCode = artiCode.Substring(0, artiCode.IndexOf('A'));
                         }
 
-                        // Extract drawing number and revision (if available)
-                        string drawingNumber = "";
-                        string revision = "00";
-
-                        int drawingNumberIndex = dataString.IndexOf("Drawing Number:");
-                        if (drawingNumberIndex != -1)
+                        if (!string.IsNullOrEmpty(artiCode) && artiCode.Length >= 3)
                         {
-                            dataString = dataString.Substring(drawingNumberIndex);
-                            string drawingNumberRaw = dataString.Substring(
-                                dataString.IndexOf(":"),
-                                Math.Min(dataString.IndexOf("<") + 1 - dataString.IndexOf(":"), dataString.Length - dataString.IndexOf(":"))
-                            );
-
-                            if (drawingNumberRaw.Contains("rev."))
-                            {
-                                drawingNumber = drawingNumberRaw.Substring(1, drawingNumberRaw.IndexOf("rev.") - 1).Trim();
-                                string revisionRaw = drawingNumberRaw.Substring(drawingNumberRaw.IndexOf("rev.") + 4);
-                                revision = revisionRaw.Substring(0, Math.Min(revisionRaw.IndexOf("<"), revisionRaw.Length)).Trim();
-                            }
-                            else
-                            {
-                                drawingNumber = drawingNumberRaw.Substring(1).Replace("<", "").Trim();
-                            }
+                            LogDebug($"Row {rowIndex}: Article code: {artiCode}");
+                            return artiCode;
                         }
-
-                        // Extract quantities and prices from other columns
-                        string quantity = ExtractColumnText(columns[3]);
-                        string unit = ExtractColumnText(columns[4]) ?? "PCS";
-                        string quotedPrice = ExtractColumnText(columns[5]);
-
-                        // Clean the extracted data
-                        quantity = CleanQuantity(quantity);
-                        quotedPrice = CleanPrice(quotedPrice);
-
-                        var quote = new QuoteLine(
-                            lineNumber: rowIndex.ToString(),
-                            artiCode: artiCode,
-                            description: description,
-                            quantity: quantity,
-                            unit: unit,
-                            quotedPrice: quotedPrice,
-                            customerPartNumber: artiCode, // Use artiCode as customer part number for now
-                            rfqNumber: rfqInfo.rfqNumber != "null" ? rfqInfo.rfqNumber : $"RFQ-{DateTime.Now:yyyyMMdd}-{rowIndex:D3}",
-                            drawingNumber: drawingNumber,
-                            revision: revision,
-                            requestedDeliveryDate: "",
-                            quoteDate: rfqInfo.quoteDate != "null" ? rfqInfo.quoteDate : DateTime.Now.ToString("dd-MM-yyyy"),
-                            quoteStatus: "Draft",
-                            priority: DeterminePriority(quotedPrice),
-                            validUntil: rfqInfo.validUntil != "null" ? rfqInfo.validUntil : DateTime.Now.AddDays(30).ToString("dd-MM-yyyy"),
-                            extractionMethod: "OUTLOOK_FORWARD_MAIL_HTML",
-                            extractionDomain: "outlook.com"
-                        );
-
-                        LogDebug($"Row {rowIndex}: ✓ Quote line created - RFQ: {quote.RfqNumber}, Article: {artiCode}");
-
-                        quoteLines.Add(quote);
-                        LogDebug($"Row {rowIndex}: ✓ Quote line added successfully");
-
-                    }
-                    catch (Exception rowEx)
-                    {
-                        LogDebug($"Row {rowIndex}: ERROR processing row: {rowEx.Message}");
-                        continue; // Continue with next row
                     }
                 }
 
-                LogDebug($"\n=== OUTLOOK QUOTE EXTRACTION COMPLETE ===");
-                LogDebug($"Successfully extracted {quoteLines.Count} quote lines");
+                // Method 2: Pattern matching in any column
+                foreach (var column in columns)
+                {
+                    var text = column.InnerText;
+                    var match = Regex.Match(text, @"(\d{3}\.\d{3}\.\d{3,4})", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        LogDebug($"Row {rowIndex}: Article code from pattern: {match.Groups[1].Value}");
+                        return match.Groups[1].Value;
+                    }
+                }
 
-                return quoteLines;
+                return "";
             }
             catch (Exception ex)
             {
-                LogDebug($"CRITICAL ERROR in ExtractQuoteLinesOutlookForwardMail: {ex.Message}");
-                LogDebug($"Stack trace: {ex.StackTrace}");
-                return new List<QuoteLine>();
+                LogDebug($"Row {rowIndex}: Error extracting article code: {ex.Message}");
+                return "";
             }
         }
 
-        #region Helper Methods
-
-        private static string ExtractColumnText(HtmlNode column)
+        /// <summary>
+        /// 🔥 Extract description from columns
+        /// </summary>
+        private string ExtractDescription(HtmlNodeCollection columns, int rowIndex)
         {
-            if (column == null) return "";
-
-            // Try to get clean text content
-            string text = column.InnerText?.Trim() ?? "";
-
-            // If text is empty, try to extract from HTML
-            if (string.IsNullOrWhiteSpace(text))
+            try
             {
-                string html = column.InnerHtml;
-                if (!string.IsNullOrWhiteSpace(html))
+                for (int i = 1; i < Math.Min(columns.Count, 4); i++)
                 {
-                    // Remove HTML tags and get text
-                    text = System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", "").Trim();
+                    var text = columns[i].InnerText?.Trim();
+                    if (!string.IsNullOrEmpty(text) && text.Length > 10 && text.Length < 200)
+                    {
+                        LogDebug($"Row {rowIndex}: Description: {text.Substring(0, Math.Min(50, text.Length))}...");
+                        return text;
+                    }
                 }
-            }
 
-            return text;
+                return "Quote item";
+            }
+            catch
+            {
+                return "Quote item";
+            }
         }
 
-        private static string CleanPrice(string price)
+        /// <summary>
+        /// 🔥 Extract technical details (drawing number, revision)
+        /// </summary>
+        private (string drawingNumber, string revision) ExtractTechnicalDetails(HtmlNodeCollection columns, int rowIndex)
         {
-            if (string.IsNullOrWhiteSpace(price))
-                return "0.00";
-
-            // Remove currency symbols and extra whitespace
-            price = price.Replace("€", "").Replace("$", "").Replace("£", "")
-                        .Replace("USD", "").Replace("EUR", "").Replace("GBP", "")
-                        .Trim();
-
-            // Handle comma as decimal separator
-            if (price.Contains(",") && !price.Contains("."))
+            try
             {
-                price = price.Replace(",", ".");
-            }
-            else if (price.Contains(",") && price.Contains("."))
-            {
-                // European format: 1.234,56 -> 1234.56
-                var lastComma = price.LastIndexOf(',');
-                var lastDot = price.LastIndexOf('.');
-                if (lastComma > lastDot)
+                string drawingNumber = "";
+                string revision = "00";
+
+                foreach (var column in columns)
                 {
-                    price = price.Replace(".", "").Replace(",", ".");
+                    var html = column.InnerHtml;
+
+                    var drawingMatch = Regex.Match(html, @"Drawing\s+(?:Number|No)[:\s]*([A-Z0-9\.\-]+)", RegexOptions.IgnoreCase);
+                    if (drawingMatch.Success)
+                    {
+                        drawingNumber = drawingMatch.Groups[1].Value;
+                    }
+
+                    var revMatch = Regex.Match(html, @"rev[:\s\.]*([A-Z0-9]+)", RegexOptions.IgnoreCase);
+                    if (revMatch.Success)
+                    {
+                        revision = revMatch.Groups[1].Value;
+                    }
+                }
+
+                return (drawingNumber, revision);
+            }
+            catch
+            {
+                return ("", "00");
+            }
+        }
+
+        /// <summary>
+        /// 🔥 Extract lead time from columns
+        /// </summary>
+        private string ExtractLeadTime(HtmlNodeCollection columns, int rowIndex)
+        {
+            try
+            {
+                foreach (var column in columns)
+                {
+                    var text = column.InnerText;
+                    var leadTimeMatch = Regex.Match(text, @"(\d+)\s*(?:days?|weeks?|weken?)", RegexOptions.IgnoreCase);
+                    if (leadTimeMatch.Success)
+                    {
+                        var leadTime = leadTimeMatch.Groups[1].Value;
+                        LogDebug($"Row {rowIndex}: Lead time: {leadTime} days");
+                        return leadTime;
+                    }
+                }
+
+                return "14"; // Default 14 days
+            }
+            catch
+            {
+                return "14";
+            }
+        }
+
+        /// <summary>
+        /// 🔥 ENHANCED: Extract quote prices using global data and table data
+        /// </summary>
+        private (string quotedPrice, string totalPrice) ExtractEnhancedQuotePrices(HtmlNodeCollection columns, int rowIndex,
+            (string rfqNumber, string totalPrice, string quoteDate, string validUntil) globalQuoteInfo)
+        {
+            try
+            {
+                LogDebug($"Row {rowIndex}: Starting enhanced quote price extraction");
+
+                // Method 1: Use global price info if available
+                if (globalQuoteInfo.totalPrice != "0.00")
+                {
+                    LogDebug($"Row {rowIndex}: Using global quote price: {globalQuoteInfo.totalPrice}");
+                    return (globalQuoteInfo.totalPrice, globalQuoteInfo.totalPrice);
+                }
+
+                // Method 2: Extract from table cells
+                foreach (var column in columns)
+                {
+                    var text = column.InnerText;
+                    var price = ExtractPriceFromText(text);
+                    if (price != "0.00")
+                    {
+                        LogDebug($"Row {rowIndex}: Quote price found in table cell: {price}");
+                        return (price, price);
+                    }
+                }
+
+                LogDebug($"Row {rowIndex}: No quote prices found, using defaults");
+                return ("0.00", "0.00");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Row {rowIndex}: Error in quote price extraction: {ex.Message}");
+                return ("0.00", "0.00");
+            }
+        }
+
+        /// <summary>
+        /// 🔥 Extract price from text using multiple patterns
+        /// </summary>
+        private string ExtractPriceFromText(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "0.00";
+
+            try
+            {
+                var pricePatterns = new[]
+                {
+                    @"€\s*(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})",
+                    @"\$\s*(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})",
+                    @"(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})\s*€",
+                    @"(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})\s*\$",
+                    @"(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})"
+                };
+
+                foreach (var pattern in pricePatterns)
+                {
+                    var match = Regex.Match(text, pattern);
+                    if (match.Success)
+                    {
+                        var priceStr = match.Groups[1].Value;
+                        var cleanPrice = CleanAndValidatePrice(priceStr);
+                        if (cleanPrice != "0.00")
+                        {
+                            return cleanPrice;
+                        }
+                    }
                 }
             }
-
-            // Remove any non-numeric characters except decimal point
-            price = System.Text.RegularExpressions.Regex.Replace(price, @"[^\d\.]", "");
-
-            // Validate result
-            if (decimal.TryParse(price, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+            catch (Exception ex)
             {
-                return result.ToString("F2", CultureInfo.InvariantCulture);
+                LogDebug($"Error extracting price from '{text}': {ex.Message}");
             }
 
             return "0.00";
         }
 
-        private static string CleanQuantity(string quantity)
+        /// <summary>
+        /// 🔥 Clean and validate price values
+        /// </summary>
+        private string CleanAndValidatePrice(string price)
         {
-            if (string.IsNullOrWhiteSpace(quantity))
-                return "1";
+            if (string.IsNullOrWhiteSpace(price)) return "0.00";
 
-            // Remove units and extra text
-            quantity = quantity.Replace("PCS", "").Replace("EA", "").Replace("PC", "")
-                              .Replace("EACH", "").Replace("ST", "").Replace("STK", "")
-                              .Trim();
-
-            // Remove any non-numeric characters except decimal point
-            quantity = System.Text.RegularExpressions.Regex.Replace(quantity, @"[^\d\.]", "");
-
-            // Validate result
-            if (decimal.TryParse(quantity, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result) && result > 0)
+            try
             {
-                return result.ToString("F0", CultureInfo.InvariantCulture);
+                price = price.Replace("€", "").Replace("$", "").Replace("£", "").Trim();
+
+                // Handle European format
+                if (price.Contains(",") && !price.Contains("."))
+                {
+                    price = price.Replace(",", ".");
+                }
+                else if (price.Contains(",") && price.Contains("."))
+                {
+                    var lastComma = price.LastIndexOf(',');
+                    var lastDot = price.LastIndexOf('.');
+                    if (lastComma > lastDot)
+                    {
+                        price = price.Replace(".", "").Replace(",", ".");
+                    }
+                }
+
+                price = Regex.Replace(price, @"[^\d\.]", "");
+
+                if (decimal.TryParse(price, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result) && result > 0)
+                {
+                    return result.ToString("F2", CultureInfo.InvariantCulture);
+                }
+            }
+            catch
+            {
+                // Fall through to return 0.00
             }
 
-            return "1";
+            return "0.00";
         }
 
-        private static string DeterminePriority(string quotedPrice)
+        /// <summary>
+        /// 🔥 Determine quote priority based on price
+        /// </summary>
+        private string DeterminePriority(string quotedPrice)
         {
-            if (decimal.TryParse(quotedPrice?.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out decimal price))
+            try
             {
-                if (price > 1000)
-                    return "High";
-                else if (price > 100)
-                    return "Medium";
-                else
-                    return "Normal";
+                if (decimal.TryParse(quotedPrice, out decimal price))
+                {
+                    if (price > 10000) return "High";
+                    if (price > 1000) return "Medium";
+                }
+                return "Normal";
             }
-            return "Normal";
+            catch
+            {
+                return "Normal";
+            }
         }
 
-        #endregion
+        // ===============================================
+        // BACKWARD COMPATIBILITY METHODS
+        // ===============================================
+
+        public List<QuoteLine> ExtractQuoteLinesOutlookForwardMail()
+        {
+            LogDebug("=== FALLBACK: Using enhanced extraction for Outlook forward mail ===");
+            return ExtractQuoteLinesWeirDomain(); // Use enhanced method as fallback
+        }
     }
 }

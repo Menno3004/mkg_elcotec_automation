@@ -764,7 +764,7 @@ namespace Mkg_Elcotec_Automation.Services
                         if (htmlOrders.Any())
                         {
                             extractedOrders.AddRange(htmlOrders);
-                            LogWorkflow($"📦 HTML extraction: Found {htmlOrders.Count} orders");
+                            LogWorkflow($"📦 HTML extraction: Found {htmlOrders.Count()} orders");
                         }
                     }
                     catch (Exception htmlEx)
@@ -783,7 +783,7 @@ namespace Mkg_Elcotec_Automation.Services
                         if (subjectOrders.Any())
                         {
                             extractedOrders.AddRange(subjectOrders);
-                            LogWorkflow($"📦 Subject extraction: Found {subjectOrders.Count} orders");
+                            LogWorkflow($"📦 Subject extraction: Found {subjectOrders.Count()} orders");
                         }
                     }
                     catch (Exception subjectEx)
@@ -854,7 +854,7 @@ namespace Mkg_Elcotec_Automation.Services
                         if (htmlQuotes.Any())
                         {
                             extractedQuotes.AddRange(htmlQuotes);
-                            LogWorkflow($"💰 Quote extraction: Found {htmlQuotes.Count} quotes");
+                            LogWorkflow($"💰 Quote extraction: Found {htmlQuotes.Count()} quotes");
                         }
                     }
                     catch (Exception quoteEx)
@@ -921,7 +921,7 @@ namespace Mkg_Elcotec_Automation.Services
                         if (htmlRevisions.Any())
                         {
                             extractedRevisions.AddRange(htmlRevisions);
-                            LogWorkflow($"🔄 Revision extraction: Found {htmlRevisions.Count} revisions");
+                            LogWorkflow($"🔄 Revision extraction: Found {htmlRevisions.Count()} revisions");
                         }
                     }
                     catch (Exception revisionEx)
