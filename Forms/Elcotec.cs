@@ -125,8 +125,8 @@ namespace Mkg_Elcotec_Automation.Forms
             };
         }
         public void UpdateFailedInjectionsTab(MkgOrderInjectionSummary orderSummary = null,
-                          MkgQuoteInjectionSummary quoteSummary = null,
-                          MkgRevisionInjectionSummary revisionSummary = null)
+                                           MkgQuoteInjectionSummary quoteSummary = null,
+                                           MkgRevisionInjectionSummary revisionSummary = null)
         {
             try
             {
@@ -138,21 +138,26 @@ namespace Mkg_Elcotec_Automation.Forms
                 var injectionErrors = _enhancedProgress?.GetInjectionErrors() ?? 0;
                 var duplicateErrors = _enhancedProgress?.GetDuplicateErrors() ?? 0;
 
-                // Calculate real failures vs duplicates
+                // Calculate total results
                 var totalOrderResults = orderSummary?.OrderResults?.Count ?? 0;
                 var totalQuoteResults = quoteSummary?.QuoteResults?.Count ?? 0;
                 var totalRevisionResults = revisionSummary?.RevisionResults?.Count ?? 0;
 
+                // Calculate real failures (excluding duplicates)
                 var realOrderFailures = orderSummary?.OrderResults?.Count(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")) ?? 0;
                 var realQuoteFailures = quoteSummary?.QuoteResults?.Count(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")) ?? 0;
                 var realRevisionFailures = revisionSummary?.RevisionResults?.Count(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")) ?? 0;
-
                 var totalRealFailures = realOrderFailures + realQuoteFailures + realRevisionFailures;
-                var totalMkgDuplicates = (totalOrderResults + totalQuoteResults + totalRevisionResults) - totalRealFailures;
+
+                // FIXED: Directly count duplicates instead of subtracting failures
+                var totalMkgDuplicates = (orderSummary?.OrderResults?.Count(r => r.HttpStatusCode.Contains("DUPLICATE")) ?? 0) +
+                                         (quoteSummary?.QuoteResults?.Count(r => r.HttpStatusCode.Contains("DUPLICATE")) ?? 0) +
+                                         (revisionSummary?.RevisionResults?.Count(r => r.HttpStatusCode.Contains("DUPLICATE")) ?? 0);
 
                 // Update internal flags correctly
                 _hasInjectionFailures = (totalRealFailures > 0 || businessErrors > 0);
                 _hasMkgDuplicatesDetected = (totalMkgDuplicates > 0);
+                _totalDuplicatesInCurrentRun = totalMkgDuplicates;  // FIXED: Set to actual duplicate count for accurate yellow triggering
 
                 // === PROCESSING SUMMARY SECTION ===
                 DisplayProcessingSummary(businessErrors, injectionErrors, duplicateErrors,
@@ -167,7 +172,7 @@ namespace Mkg_Elcotec_Automation.Forms
                                                   businessErrors, injectionErrors, totalMkgDuplicates);
                 }
 
-                // Update status flags and UI
+                // Update status labels and UI
                 UpdateStatusLabelsAndFlags(totalRealFailures, businessErrors, totalMkgDuplicates);
                 UpdateTabStatus();
 
@@ -3194,8 +3199,8 @@ namespace Mkg_Elcotec_Automation.Forms
                         totalFailed += revisionSummary.FailedInjections;
                     }
                 }
-                //ForceBusinessError();
-                //ForceInjectionError();
+                ForceBusinessError();
+                ForceInjectionError();
                 
                 Console.WriteLine("🔍 COUNTING INJECTION ERRORS:");
 
