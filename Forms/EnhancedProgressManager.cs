@@ -463,25 +463,21 @@ namespace Mkg_Elcotec_Automation.Services
         {
             var elapsed = DateTime.Now - _operationStartTime;
             var completionMessage = finalMessage ?? "All operations completed successfully";
-
             _preventAutoHide = false; // Allow hiding now
             _isProcessingComplete = true;
             _updateTimer.Stop();
-
             UpdateMainProgress(_totalSteps, _totalSteps, $"🎉 {completionMessage}");
             UpdateDebugConsole($"🎉 {completionMessage}");
+            EmailWorkFlowService.ResetAllTabColors(); // Fixed: Call from EmailWorkFlowService
             LogOperation($"🎉 Complete workflow finished in {elapsed.TotalSeconds:F1}s", LogLevel.Success);
-
             // Change color to show final completion
             if (_floatingCurrentOperationLabel != null)
             {
                 _floatingCurrentOperationLabel.ForeColor = Color.DarkGreen;
             }
-
             // Auto-hide after 5 seconds
             Task.Delay(5000).ContinueWith(_ => HideFloatingStatsForm());
         }
-
         /// <summary>
         /// Enhanced fail operation
         /// </summary>

@@ -29,6 +29,8 @@ namespace Mkg_Elcotec_Automation.Forms
         private DateTime _processingStartTime;
         private DateTime _lastTabUpdate = DateTime.MinValue;
         private List<MkgOrderResult> _testErrors = new List<MkgOrderResult>();
+        private bool _isEmailImportTabActive = false;
+        private bool _isMkgResultsTabActive = false;
         // Bottom ToolStrip components
         private ToolStrip bottomToolStrip;
         private ToolStripProgressBar toolStripProgressBar;
@@ -56,6 +58,7 @@ namespace Mkg_Elcotec_Automation.Forms
         private int _totalDuplicatesInCurrentRun = 0;
         private bool _hasInjectionFailures = false;
         private List<string> _savedIncrementalOutput = new List<string>();
+
         #endregion
 
         #region Constructor and Initialization
@@ -70,15 +73,57 @@ namespace Mkg_Elcotec_Automation.Forms
             InitializeRunHistory();
             InitializeAllTabControls();
             InitializeEnhancedProgress();
+            InitializeTabColoringCallback();
             SetupEnhancedDuplicationEventHandlers();
             Console.WriteLine("✅ Elcotec constructor completed with event wiring");
         }
-        // Enhanced MKG Results Display - Improved formatting while maintaining all data
-        // 🔧 COMPLETELY FIXED UpdateFailedInjectionsTab method
+        private void InitializeTabColoringCallback()
+        {
+            // Set up the callback for tab coloring from EmailWorkFlowService
+            EmailWorkFlowService.TabColoringCallback = (tabName, isActive) =>
+            {
+                try
+                {
+                    this.Invoke((MethodInvoker)delegate
+                    {
+                        switch (tabName)
+                        {
+                            case "EmailImport":
+                                _isEmailImportTabActive = isActive;
+                                _isMkgResultsTabActive = false; // Turn off MKG tab when email import is active
+                                if (isActive)
+                                {
+                                    tabControl.SelectedIndex = 0; // Switch to Email Import tab
+                                }
+                                break;
+                            case "MkgResults":
+                                _isMkgResultsTabActive = isActive;
+                                _isEmailImportTabActive = false; // Turn off email import tab when MKG is active
+                                if (isActive)
+                                {
+                                    tabControl.SelectedIndex = 1; // Switch to MKG Results tab
+                                }
+                                break;
+                            case "Reset":
+                                // Only reset workflow tabs, NOT the Failed Injections tab
+                                _isEmailImportTabActive = false;
+                                _isMkgResultsTabActive = false;
+                                // Failed Injections tab keeps its status-based coloring
+                                break;
+                        }
 
-        // Enhanced Failed Injections Tab - Clean Processing Summary + Detailed Errors
-        // Add this to Elcotec.cs to replace your current UpdateFailedInjectionsTab method
+                        // Force redraw of tabs
+                        tabControl?.Invalidate();
 
+                        Console.WriteLine($"🎨 Tab coloring updated: EmailImport={_isEmailImportTabActive}, MkgResults={_isMkgResultsTabActive}");
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Error updating tab colors: {ex.Message}");
+                }
+            };
+        }
         public void UpdateFailedInjectionsTab(MkgOrderInjectionSummary orderSummary = null,
                           MkgQuoteInjectionSummary quoteSummary = null,
                           MkgRevisionInjectionSummary revisionSummary = null)
@@ -1662,19 +1707,6 @@ namespace Mkg_Elcotec_Automation.Forms
         {
             try
             {
-                // Skip custom drawing during heavy processing
-                if (_isProcessingMkg)
-                {
-                    e.DrawBackground();
-                    TabControl tc = (TabControl)sender;
-                    TabPage tp = tc.TabPages[e.Index];
-                    Rectangle tabRect = tc.GetTabRect(e.Index);
-                    TextRenderer.DrawText(e.Graphics, tp.Text, tc.Font, tabRect,
-                                         SystemColors.ControlText,
-                                         TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-                    return;
-                }
-
                 TabControl tc2 = (TabControl)sender;
                 TabPage tp2 = tc2.TabPages[e.Index];
                 Rectangle tabRect2 = tc2.GetTabRect(e.Index);
@@ -1683,8 +1715,24 @@ namespace Mkg_Elcotec_Automation.Forms
                 Color bgColor = SystemColors.Control;
                 Color textColor = SystemColors.ControlText;
 
-                // 🎯 Only apply custom colors to Failed Injections tab HEADER
-                if (tp2.Text.Contains("Failed"))
+                // Debug output
+                Console.WriteLine($"🎨 Drawing tab: {tp2.Text}, EmailImportActive={_isEmailImportTabActive}, MkgResultsActive={_isMkgResultsTabActive}");
+
+                // NEW: Apply workflow-based coloring for Email Import and MKG Results tabs
+                if (tp2.Text.Contains("Email Import") && _isEmailImportTabActive)
+                {
+                    Console.WriteLine("🎨 Setting Email Import tab to BLUE");
+                    bgColor = Color.Blue;
+                    textColor = Color.White;
+                }
+                else if (tp2.Text.Contains("MKG Results") && _isMkgResultsTabActive)
+                {
+                    Console.WriteLine("🎨 Setting MKG Results tab to BLUE");
+                    bgColor = Color.Blue;
+                    textColor = Color.White;
+                }
+                // EXISTING: Apply custom colors to Failed Injections tab HEADER based on status
+                else if (tp2.Text.Contains("Failed"))
                 {
                     var status = GetCurrentTabStatus();
                     switch (status)
@@ -1714,14 +1762,8 @@ namespace Mkg_Elcotec_Automation.Forms
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Tab draw error: {ex.Message}");
+                Console.WriteLine($"❌ Error in TabControl_DrawItem: {ex.Message}");
                 e.DrawBackground();
-                TabControl tabControl = (TabControl)sender;
-                TabPage tabPage = tabControl.TabPages[e.Index];
-                Rectangle tabRectangle = tabControl.GetTabRect(e.Index);
-                TextRenderer.DrawText(e.Graphics, tabPage.Text, tabControl.Font, tabRectangle,
-                                     SystemColors.ControlText,
-                                     TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
         }
         // Modify the DuplicationService event handlers to check the flag:
@@ -1732,25 +1774,25 @@ namespace Mkg_Elcotec_Automation.Forms
             var injectionErrors = _enhancedProgress?.GetInjectionErrors() ?? 0;
             var businessErrors = _enhancedProgress?.GetBusinessErrors() ?? 0;
 
+            // DEBUG: Check the duplicate flags
+            Console.WriteLine($"🔍 DEBUG Tab Status: _hasMkgDuplicatesDetected={_hasMkgDuplicatesDetected}, _totalDuplicatesInCurrentRun={_totalDuplicatesInCurrentRun}, _isProcessingMkg={_isProcessingMkg}");
+
             // RED takes highest priority - for injection failures OR business errors
             if (_hasInjectionFailures || injectionErrors > 0 || businessErrors > 0)
             {
                 Console.WriteLine($"🔴 Tab status: RED - failures detected (injection: {injectionErrors}, business: {businessErrors}, hasInjectionFailures: {_hasInjectionFailures})");
                 return TabStatus.Red;
             }
-
             // YELLOW - duplicates detected but no actual failures
             if (_hasMkgDuplicatesDetected && _totalDuplicatesInCurrentRun > 0)
             {
                 Console.WriteLine($"🟡 Tab status: YELLOW - {_totalDuplicatesInCurrentRun} duplicates detected (not errors)");
                 return TabStatus.Yellow;
             }
-
             // GREEN - no errors, no duplicates
             Console.WriteLine($"🟢 Tab status: GREEN - no issues detected");
             return TabStatus.Green;
         }
-
         private void SetupEmailImportTab()
         {
             tabEmailImport.Controls.Clear();
@@ -1999,8 +2041,13 @@ namespace Mkg_Elcotec_Automation.Forms
                     try
                     {
                         Console.WriteLine($"🚨 CRITICAL BUSINESS ERRORS: {count} detected - immediate action required");
-                        _hasInjectionFailures = true; // ✅ CORRECT: Force RED tab for business errors
-                        UpdateTabStatus();
+
+                        // Only set injection failures flag during MKG processing, not email import
+                        if (_isProcessingMkg)
+                        {
+                            _hasInjectionFailures = true; // ✅ CORRECT: Force RED tab for business errors
+                            UpdateTabStatus();
+                        }
 
                         // Update current run data
                         if (_currentRunData != null)
@@ -2023,8 +2070,13 @@ namespace Mkg_Elcotec_Automation.Forms
                     try
                     {
                         Console.WriteLine($"💰 PRICE DISCREPANCY: {alert.ArtiCode} - {alert.DiscrepancyPercentage:F1}% difference");
-                        _hasInjectionFailures = true; // ✅ CORRECT: Force RED tab for financial risks
-                        UpdateTabStatus();
+
+                        // Only set injection failures flag during MKG processing, not email import
+                        if (_isProcessingMkg)
+                        {
+                            _hasInjectionFailures = true; // ✅ CORRECT: Force RED tab for financial risks
+                            UpdateTabStatus();
+                        }
 
                         // Update current run data
                         if (_currentRunData != null)
@@ -2048,12 +2100,13 @@ namespace Mkg_Elcotec_Automation.Forms
                     {
                         Console.WriteLine($"🔄 MANAGED DUPLICATES DETECTED: {count} (NOT an error)");
 
-                        // 🔧 FIXED: Do NOT set _hasInjectionFailures for duplicates
-                        // _hasInjectionFailures = true; // ❌ WRONG - REMOVED this line
-
-                        _hasMkgDuplicatesDetected = true; // ✅ CORRECT: Only set duplicate flag
-                        _totalDuplicatesInCurrentRun += count;
-                        UpdateTabStatus();
+                        // Only update tab status during MKG processing, not email import
+                        if (_isProcessingMkg)
+                        {
+                            _hasMkgDuplicatesDetected = true; // ✅ CORRECT: Only set duplicate flag
+                            _totalDuplicatesInCurrentRun += count;
+                            UpdateTabStatus();
+                        }
 
                         // Update current run data - duplicates are NOT failures
                         if (_currentRunData != null)
@@ -2061,10 +2114,6 @@ namespace Mkg_Elcotec_Automation.Forms
                             _currentRunData.HasMkgDuplicatesDetected = true;
                             _currentRunData.TotalDuplicatesDetected += count;
                             _currentRunData.LastDuplicateDetectionUpdate = DateTime.Now;
-
-                            // 🔧 FIXED: Do NOT increment failure count for duplicates
-                            // _currentRunData.HasInjectionFailures = true; // ❌ WRONG - REMOVED
-                            // _currentRunData.TotalFailuresAtCompletion++; // ❌ WRONG - REMOVED
                         }
 
                         LogResult($"🔄 MANAGED DUPLICATES: {count} items handled automatically");
@@ -2083,7 +2132,6 @@ namespace Mkg_Elcotec_Automation.Forms
                 Console.WriteLine($"❌ Error setting up duplication service events: {ex.Message}");
             }
         }
-
         private EmailDuplicationResult ProcessEmailWithPriceValidation(EmailDetail emailDetail)
         {
             try
@@ -2926,6 +2974,9 @@ namespace Mkg_Elcotec_Automation.Forms
                 var totalTime = DateTime.Now - _processingStartTime;
                 _enhancedProgress?.CompleteOperation($"Enhanced email import completed in {totalTime.TotalSeconds:F1}s!");
 
+                // Reset tab colors when workflow is complete
+                EmailWorkFlowService.ResetAllTabColors();
+
                 if (_currentRunData != null)
                 {
                     PersistCurrentRunDataNow();
@@ -2941,7 +2992,7 @@ namespace Mkg_Elcotec_Automation.Forms
                 LogResult($"❌ Error in enhanced email processing: {ex.Message}");
 
                 _enhancedProgress?.FailOperation(ex.Message);
-
+                EmailWorkFlowService.ResetAllTabColors();
                 if (_currentRunId != Guid.Empty)
                 {
                     _runHistoryManager.CompleteRun(_currentRunId, "Failed");
@@ -3031,6 +3082,9 @@ namespace Mkg_Elcotec_Automation.Forms
             {
                 _isProcessingMkg = true;
                 Console.WriteLine("🚀 Starting ENHANCED MKG injection with real-time updates...");
+
+                // 🎯 NEW: Switch from Email Import tab to MKG Results tab
+                EmailWorkFlowService.SetMkgResultsTabActive();
 
                 // ✅ FIXED: Clear MKG Results tab and prepare for real-time updates
                 if (lstMkgResults != null)

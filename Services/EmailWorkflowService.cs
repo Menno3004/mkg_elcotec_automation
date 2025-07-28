@@ -26,6 +26,7 @@ namespace Mkg_Elcotec_Automation.Services
         public static void ClearMkgProcessingLog() => _mkgProcessingLog.Clear();
         public static List<string> GetMkgProcessingLog() => new List<string>(_mkgProcessingLog);
         public static List<string> GetProcessingLog() => new List<string>(_processingLog);
+        public static Action<string, bool> TabColoringCallback { get; set; }
         private static void LogWorkflow(string message)
         {
             var logEntry = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
@@ -39,7 +40,18 @@ namespace Mkg_Elcotec_Automation.Services
             Console.WriteLine($"[MKG_WORKFLOW] {logEntry}");
         }
 
-
+        public static void SetEmailImportTabActive()
+        {
+            TabColoringCallback?.Invoke("EmailImport", true);
+        }
+        public static void SetMkgResultsTabActive()
+        {
+            TabColoringCallback?.Invoke("MkgResults", true);
+        }
+        public static void ResetAllTabColors()
+        {
+            TabColoringCallback?.Invoke("Reset", false);
+        }
         public static async Task<EmailImportSummary> ImportEmailsAsync(
     EnhancedProgressManager progressManager = null,
     Action<string> logCallback = null)
@@ -52,9 +64,10 @@ namespace Mkg_Elcotec_Automation.Services
             {
                 LogWorkflow("=== EMAIL IMPORT STARTED ===");
                 logCallback?.Invoke("🚀 Starting email import process...");
-
+                SetEmailImportTabActive();
                 // 🎯 FIXED: Use StartNewSession for initial email import
                 progressManager?.StartNewSession("Email Import", 100);
+
                 progressManager?.UpdateDebugConsole("🚀 Starting email import...");
                 logCallback?.Invoke("🔗 Connecting to Microsoft Graph API...");
                 await Task.Delay(1);
@@ -343,6 +356,9 @@ namespace Mkg_Elcotec_Automation.Services
                 logCallback?.Invoke($"❌ Critical error in email import: {ex.Message}");
                 summary.FailedEmails++;
                 progressManager?.FailOperation($"Email import failed: {ex.Message}");
+
+                // 🎯 NEW: Reset tab colors on error
+                ResetAllTabColors();
                 throw;
             }
         }
@@ -511,50 +527,6 @@ namespace Mkg_Elcotec_Automation.Services
             public HashSet<string> ProcessedEmailIds { get; } = new HashSet<string>();
             public int SkippedEmailsCount { get; set; } = 0;
             public int DuplicateEmailsCount { get; set; } = 0;
-        }
-
-        #endregion
-
-        #region MKG Integration Helper Methods
-
-        /// <summary>
-        /// Start MKG injection phase - use UpdateOperationPhase to preserve statistics panel
-        /// </summary>
-        public static void StartMkgInjectionPhase(EnhancedProgressManager progressManager = null, int totalItems = 0)
-        {
-            try
-            {
-                // 🎯 FIXED: Use UpdateOperationPhase for MKG injection (preserves statistics panel)
-                progressManager?.UpdateOperationPhase("MKG Injection", 0, 100);
-                progressManager?.UpdateDebugConsole($"🚀 Starting MKG injection of {totalItems} items...");
-
-                LogWorkflow($"🚀 Starting MKG injection phase with {totalItems} items");
-            }
-            catch (Exception ex)
-            {
-                LogWorkflow($"❌ Error starting MKG injection phase: {ex.Message}");
-                progressManager?.FailOperation($"Failed to start MKG injection: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Complete entire workflow - call this when EVERYTHING is done (email + MKG)
-        /// </summary>
-        public static void CompleteEntireWorkflow(EnhancedProgressManager progressManager = null, string finalSummary = null)
-        {
-            try
-            {
-                var completionMessage = finalSummary ?? "Email import and MKG injection completed successfully";
-
-                // 🎯 FIXED: Use CompleteEntireWorkflow to finally hide the panel
-                progressManager?.CompleteEntireWorkflow(completionMessage);
-
-                LogWorkflow($"🎉 Complete workflow finished: {completionMessage}");
-            }
-            catch (Exception ex)
-            {
-                LogWorkflow($"❌ Error completing entire workflow: {ex.Message}");
-            }
         }
 
         #endregion
