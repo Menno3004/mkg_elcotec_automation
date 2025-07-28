@@ -24,10 +24,11 @@ namespace Mkg_Elcotec_Automation.Forms
         private EnhancedProgressManager _enhancedProgress;
         private bool _isProcessing = false;
         private bool _isProcessingMkg = false;
+        private bool _isEmailImportRunning = false;
+        private bool _isMkgInjectionRunning = false;
         private DateTime _processingStartTime;
-        private bool _isEmailImportRunning = false; // 🔵 NEW: Track email import status
         private DateTime _lastTabUpdate = DateTime.MinValue;
-
+        private List<MkgOrderResult> _testErrors = new List<MkgOrderResult>();
         // Bottom ToolStrip components
         private ToolStrip bottomToolStrip;
         private ToolStripProgressBar toolStripProgressBar;
@@ -74,258 +75,470 @@ namespace Mkg_Elcotec_Automation.Forms
         }
         // Enhanced MKG Results Display - Improved formatting while maintaining all data
         // 🔧 COMPLETELY FIXED UpdateFailedInjectionsTab method
+
+        // Enhanced Failed Injections Tab - Clean Processing Summary + Detailed Errors
+        // Add this to Elcotec.cs to replace your current UpdateFailedInjectionsTab method
+
         public void UpdateFailedInjectionsTab(MkgOrderInjectionSummary orderSummary = null,
-                                 MkgQuoteInjectionSummary quoteSummary = null,
-                                 MkgRevisionInjectionSummary revisionSummary = null)
+                          MkgQuoteInjectionSummary quoteSummary = null,
+                          MkgRevisionInjectionSummary revisionSummary = null)
         {
             try
             {
                 if (lstFailedInjections == null) return;
-
                 lstFailedInjections.Items.Clear();
 
-                // 🔧 FIX 1: Calculate REAL failures and duplicates separately by examining individual results
-                int totalRealFailures = 0;
-                int totalMkgDuplicates = 0;
+                // Get statistics from progress manager
+                var businessErrors = _enhancedProgress?.GetBusinessErrors() ?? 0;
+                var injectionErrors = _enhancedProgress?.GetInjectionErrors() ?? 0;
+                var duplicateErrors = _enhancedProgress?.GetDuplicateErrors() ?? 0;
 
-                // Count order failures correctly
-                if (orderSummary?.OrderResults != null)
+                // Calculate real failures vs duplicates
+                var totalOrderResults = orderSummary?.OrderResults?.Count ?? 0;
+                var totalQuoteResults = quoteSummary?.QuoteResults?.Count ?? 0;
+                var totalRevisionResults = revisionSummary?.RevisionResults?.Count ?? 0;
+
+                var realOrderFailures = orderSummary?.OrderResults?.Count(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")) ?? 0;
+                var realQuoteFailures = quoteSummary?.QuoteResults?.Count(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")) ?? 0;
+                var realRevisionFailures = revisionSummary?.RevisionResults?.Count(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")) ?? 0;
+
+                var totalRealFailures = realOrderFailures + realQuoteFailures + realRevisionFailures;
+                var totalMkgDuplicates = (totalOrderResults + totalQuoteResults + totalRevisionResults) - totalRealFailures;
+
+                // Update internal flags correctly
+                _hasInjectionFailures = (totalRealFailures > 0 || businessErrors > 0);
+                _hasMkgDuplicatesDetected = (totalMkgDuplicates > 0);
+
+                // === PROCESSING SUMMARY SECTION ===
+                DisplayProcessingSummary(businessErrors, injectionErrors, duplicateErrors,
+                                       totalRealFailures, totalMkgDuplicates, totalOrderResults,
+                                       totalQuoteResults, totalRevisionResults);
+
+                // === DETAILED ERROR INFORMATION ===  
+                // FIXED: Show detailed section if there are ANY issues (errors OR duplicates)
+                if (totalRealFailures > 0 || businessErrors > 0 || injectionErrors > 0 || totalMkgDuplicates > 0)
                 {
-                    foreach (var result in orderSummary.OrderResults)
-                    {
-                        if (!result.Success)
-                        {
-                            if (result.HttpStatusCode?.Contains("DUPLICATE") == true ||
-                                result.ErrorMessage?.Contains("DUPLICATE") == true ||
-                                result.ErrorMessage?.Contains("already exists") == true)
-                            {
-                                totalMkgDuplicates++;
-                            }
-                            else
-                            {
-                                totalRealFailures++;
-                            }
-                        }
-                    }
+                    DisplayDetailedErrorInformation(orderSummary, quoteSummary, revisionSummary,
+                                                  businessErrors, injectionErrors, totalMkgDuplicates);
                 }
 
-                // Count quote failures correctly  
-                if (quoteSummary?.QuoteResults != null)
-                {
-                    foreach (var result in quoteSummary.QuoteResults)
-                    {
-                        if (!result.Success)
-                        {
-                            if (result.HttpStatusCode?.Contains("DUPLICATE") == true ||
-                                result.ErrorMessage?.Contains("DUPLICATE") == true ||
-                                result.ErrorMessage?.Contains("already exists") == true)
-                            {
-                                totalMkgDuplicates++;
-                            }
-                            else
-                            {
-                                totalRealFailures++;
-                            }
-                        }
-                    }
-                }
-
-                // Count revision failures correctly
-                if (revisionSummary?.RevisionResults != null)
-                {
-                    foreach (var result in revisionSummary.RevisionResults)
-                    {
-                        if (!result.Success)
-                        {
-                            if (result.HttpStatusCode?.Contains("DUPLICATE") == true ||
-                                result.ErrorMessage?.Contains("DUPLICATE") == true ||
-                                result.ErrorMessage?.Contains("already exists") == true)
-                            {
-                                totalMkgDuplicates++;
-                            }
-                            else
-                            {
-                                totalRealFailures++;
-                            }
-                        }
-                    }
-                }
-
-                // 🔧 FIX 2: Set flags correctly based on actual counts
-                _hasInjectionFailures = (totalRealFailures > 0);  // Only true for REAL failures
-                _hasMkgDuplicatesDetected = (totalMkgDuplicates > 0);  // True for duplicates
-                _totalDuplicatesInCurrentRun = totalMkgDuplicates;
-
-                Console.WriteLine($"🔧 CORRECTED FLAGS: _hasInjectionFailures={_hasInjectionFailures}, _hasMkgDuplicatesDetected={_hasMkgDuplicatesDetected}");
-                Console.WriteLine($"🔧 CORRECTED COUNTS: Real failures={totalRealFailures}, Duplicates={totalMkgDuplicates}");
-
-                // 🔧 FIX 3: Update current run data correctly
-                if (_currentRunData != null)
-                {
-                    _currentRunData.HasInjectionFailures = (totalRealFailures > 0);
-                    _currentRunData.TotalFailuresAtCompletion = totalRealFailures;
-                    _currentRunData.HasMkgDuplicatesDetected = (totalMkgDuplicates > 0);
-                    _currentRunData.TotalDuplicatesDetected = totalMkgDuplicates;
-                }
-
-                // 🔧 FIX 4: Update status label with correct information
-                if (lblFailedStatus != null)
-                {
-                    if (totalRealFailures == 0 && totalMkgDuplicates == 0)
-                    {
-                        lblFailedStatus.Text = "✅ No issues detected - all injections successful!";
-                        lblFailedStatus.ForeColor = Color.Green;
-                    }
-                    else if (totalRealFailures > 0)
-                    {
-                        lblFailedStatus.Text = $"❌ {totalRealFailures} real failures + {totalMkgDuplicates} MKG duplicates";
-                        lblFailedStatus.ForeColor = Color.Red;
-                    }
-                    else // Only MKG duplicates, no real failures
-                    {
-                        lblFailedStatus.Text = $"🟡 {totalMkgDuplicates} MKG duplicates detected (handled automatically)";
-                        lblFailedStatus.ForeColor = Color.DarkOrange;
-                    }
-                }
-
-                // 🔧 FIX 5: Update tab status with correct values
+                // Update status flags and UI
+                UpdateStatusLabelsAndFlags(totalRealFailures, businessErrors, totalMkgDuplicates);
                 UpdateTabStatus();
 
-                // 🔧 FIX 6: Display content based on actual status
-                lstFailedInjections.Items.Add("🔍 === INJECTION ANALYSIS OVERVIEW ===");
-                lstFailedInjections.Items.Add($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                lstFailedInjections.Items.Add("");
-
-                // 📊 SUMMARY SECTION
-                lstFailedInjections.Items.Add("📊 === PROCESSING SUMMARY ===");
-                var totalProcessed = totalRealFailures + totalMkgDuplicates;
-                if (orderSummary != null) totalProcessed += orderSummary.SuccessfulInjections;
-                if (quoteSummary != null) totalProcessed += quoteSummary.SuccessfulInjections;
-                if (revisionSummary != null) totalProcessed += revisionSummary.SuccessfulInjections;
-
-                var totalSuccessful = (orderSummary?.SuccessfulInjections ?? 0) +
-                                     (quoteSummary?.SuccessfulInjections ?? 0) +
-                                     (revisionSummary?.SuccessfulInjections ?? 0);
-
-                lstFailedInjections.Items.Add($"Total Processed: {totalProcessed}");
-                lstFailedInjections.Items.Add($"✅ Successful: {totalSuccessful}");
-                lstFailedInjections.Items.Add($"🔄 MKG Duplicates: {totalMkgDuplicates}");
-                lstFailedInjections.Items.Add($"❌ Real Failures: {totalRealFailures}");
-
-                if (totalProcessed > 0)
-                {
-                    var successRate = (totalSuccessful * 100.0) / totalProcessed;
-                    lstFailedInjections.Items.Add($"📈 Success Rate: {successRate:F1}%");
-                }
-                lstFailedInjections.Items.Add("");
-
-                // 🎯 STATUS DETERMINATION - CLEAR MESSAGING
-                if (totalRealFailures == 0 && totalMkgDuplicates == 0)
-                {
-                    lstFailedInjections.Items.Add("🎉 === NO ISSUES DETECTED ===");
-                    lstFailedInjections.Items.Add("✅ All items processed successfully");
-                    lstFailedInjections.Items.Add("✅ No duplicates encountered");
-                    lstFailedInjections.Items.Add("✅ No injection failures");
-                    lstFailedInjections.Items.Add("💡 Tab should be GREEN");
-                }
-                else if (totalRealFailures == 0)
-                {
-                    lstFailedInjections.Items.Add("🟡 === MKG DUPLICATES DETECTED (NO FAILURES) ===");
-                    lstFailedInjections.Items.Add($"🔄 {totalMkgDuplicates} duplicates were automatically handled");
-                    lstFailedInjections.Items.Add("✅ No real injection failures detected");
-                    lstFailedInjections.Items.Add("💡 Duplicates prevent data corruption - this is normal behavior");
-                    lstFailedInjections.Items.Add("💡 Tab should be YELLOW/ORANGE (duplicates are not errors)");
-                }
-                else
-                {
-                    lstFailedInjections.Items.Add("❌ === REAL FAILURES DETECTED ===");
-                    lstFailedInjections.Items.Add($"⚠️ {totalRealFailures} items failed to inject properly");
-                    if (totalMkgDuplicates > 0)
-                        lstFailedInjections.Items.Add($"🔄 {totalMkgDuplicates} duplicates were also detected");
-                    lstFailedInjections.Items.Add("🚨 Real failures require immediate attention");
-                    lstFailedInjections.Items.Add("💡 Tab should be RED (real failures need review)");
-                }
-
-                lstFailedInjections.Items.Add("");
-
-                // 📋 DETAILED BREAKDOWN BY TYPE
-                if (orderSummary != null)
-                {
-                    var orderRealFailures = orderSummary.OrderResults?.Count(r => !r.Success &&
-                        !(r.HttpStatusCode?.Contains("DUPLICATE") == true || r.ErrorMessage?.Contains("DUPLICATE") == true)) ?? 0;
-                    var orderDuplicates = orderSummary.OrderResults?.Count(r => !r.Success &&
-                        (r.HttpStatusCode?.Contains("DUPLICATE") == true || r.ErrorMessage?.Contains("DUPLICATE") == true)) ?? 0;
-
-                    lstFailedInjections.Items.Add("📦 === ORDER PROCESSING ===");
-                    lstFailedInjections.Items.Add($"✅ Successful Orders: {orderSummary.SuccessfulInjections}");
-                    lstFailedInjections.Items.Add($"🔄 Duplicate Orders: {orderDuplicates}");
-                    lstFailedInjections.Items.Add($"❌ Failed Orders: {orderRealFailures}");
-                    lstFailedInjections.Items.Add("");
-                }
-
-                if (quoteSummary != null)
-                {
-                    var quoteRealFailures = quoteSummary.QuoteResults?.Count(r => !r.Success &&
-                        !(r.HttpStatusCode?.Contains("DUPLICATE") == true || r.ErrorMessage?.Contains("DUPLICATE") == true)) ?? 0;
-                    var quoteDuplicates = quoteSummary.QuoteResults?.Count(r => !r.Success &&
-                        (r.HttpStatusCode?.Contains("DUPLICATE") == true || r.ErrorMessage?.Contains("DUPLICATE") == true)) ?? 0;
-
-                    lstFailedInjections.Items.Add("💬 === QUOTE PROCESSING ===");
-                    lstFailedInjections.Items.Add($"✅ Successful Quotes: {quoteSummary.SuccessfulInjections}");
-                    lstFailedInjections.Items.Add($"🔄 Duplicate Quotes: {quoteDuplicates}");
-                    lstFailedInjections.Items.Add($"❌ Failed Quotes: {quoteRealFailures}");
-                    lstFailedInjections.Items.Add("");
-                }
-
-                if (revisionSummary != null)
-                {
-                    var revisionRealFailures = revisionSummary.RevisionResults?.Count(r => !r.Success &&
-                        !(r.HttpStatusCode?.Contains("DUPLICATE") == true || r.ErrorMessage?.Contains("DUPLICATE") == true)) ?? 0;
-                    var revisionDuplicates = revisionSummary.RevisionResults?.Count(r => !r.Success &&
-                        (r.HttpStatusCode?.Contains("DUPLICATE") == true || r.ErrorMessage?.Contains("DUPLICATE") == true)) ?? 0;
-
-                    lstFailedInjections.Items.Add("🔄 === REVISION PROCESSING ===");
-                    lstFailedInjections.Items.Add($"✅ Successful Revisions: {revisionSummary.SuccessfulInjections}");
-                    lstFailedInjections.Items.Add($"🔄 Duplicate Revisions: {revisionDuplicates}");
-                    lstFailedInjections.Items.Add($"❌ Failed Revisions: {revisionRealFailures}");
-                    lstFailedInjections.Items.Add("");
-                }
-
-                // 💡 ACTION ITEMS
-                lstFailedInjections.Items.Add("💡 === RECOMMENDED ACTIONS ===");
-                if (totalRealFailures > 0)
-                {
-                    lstFailedInjections.Items.Add("🔍 Review failed items in MKG Results tab");
-                    lstFailedInjections.Items.Add("🔧 Check API connectivity and permissions");
-                    lstFailedInjections.Items.Add("📞 Contact MKG system administrator if needed");
-
-                    // Show detailed failure information
-                    lstFailedInjections.Items.Add("");
-                    lstFailedInjections.Items.Add("🔍 === DETAILED FAILURE ANALYSIS ===");
-                    DisplayDetailedFailureBreakdown(orderSummary, quoteSummary, revisionSummary);
-                }
-                else if (totalMkgDuplicates > 0)
-                {
-                    lstFailedInjections.Items.Add("✅ No action required - duplicates handled automatically");
-                    lstFailedInjections.Items.Add("📊 Review MKG Results tab for detailed information");
-                }
-                else
-                {
-                    lstFailedInjections.Items.Add("✅ No action required - all processing successful");
-                }
-
-                lstFailedInjections.Items.Add("");
-                lstFailedInjections.Items.Add("=== END OF ANALYSIS ===");
-
+                Console.WriteLine($"✅ Failed Injections tab updated: Real failures={totalRealFailures}, Business errors={businessErrors}, Duplicates={totalMkgDuplicates}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error updating failed injections tab: {ex.Message}");
-                if (lstFailedInjections != null)
+            }
+        }
+
+        private void UpdateStatusLabelsAndFlags(int totalRealFailures, int businessErrors, int totalMkgDuplicates)
+        {
+            // FIXED: Calculate total failures including business errors
+            var totalFailures = totalRealFailures + businessErrors;
+            var injectionErrors = _enhancedProgress?.GetInjectionErrors() ?? 0;
+            var combinedFailures = totalFailures + injectionErrors;
+
+            // Update current run data
+            if (_currentRunData != null)
+            {
+                _currentRunData.HasInjectionFailures = (combinedFailures > 0);
+                _currentRunData.TotalFailuresAtCompletion = combinedFailures;
+                _currentRunData.HasMkgDuplicatesDetected = (totalMkgDuplicates > 0);
+                _currentRunData.TotalDuplicatesDetected = totalMkgDuplicates;
+            }
+
+            // FIXED: Update status label to show correct failure count in header
+            if (lblFailedStatus != null)
+            {
+                if (combinedFailures == 0 && totalMkgDuplicates == 0)
                 {
-                    lstFailedInjections.Items.Clear();
-                    lstFailedInjections.Items.Add($"❌ Error analyzing injection results: {ex.Message}");
+                    lblFailedStatus.Text = "✅ No issues detected - all injections successful!";
+                    lblFailedStatus.ForeColor = Color.Green;
                 }
+                else if (combinedFailures > 0)
+                {
+                    // FIXED: Show total failure count including business errors
+                    lblFailedStatus.Text = $"❌ {combinedFailures} failures detected" +
+                                         (totalMkgDuplicates > 0 ? $" + {totalMkgDuplicates} duplicates managed" : "");
+                    lblFailedStatus.ForeColor = Color.Red;
+                }
+                else // Only duplicates, no real failures
+                {
+                    lblFailedStatus.Text = $"⚠️ {totalMkgDuplicates} duplicates detected (auto-managed)";
+                    lblFailedStatus.ForeColor = Color.DarkOrange;
+                }
+            }
+        }
+
+        private void DisplayProcessingSummary(int businessErrors, int injectionErrors, int duplicateErrors,
+                                     int totalRealFailures, int totalMkgDuplicates,
+                                     int totalOrderResults, int totalQuoteResults, int totalRevisionResults)
+        {
+            lstFailedInjections.Items.Add("══════════════════════════════════════════");
+            lstFailedInjections.Items.Add("          PROCESSING SUMMARY");
+            lstFailedInjections.Items.Add("══════════════════════════════════════════");
+            lstFailedInjections.Items.Add($"📅 Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            lstFailedInjections.Items.Add("");
+
+            // === OVERALL STATUS ===
+            var totalInjectionFailures = injectionErrors + totalRealFailures; // Combined counter
+            var overallStatus = (totalInjectionFailures > 0 || businessErrors > 0) ? "❌ FAILURES DETECTED" :
+                               (totalMkgDuplicates > 0) ? "⚠️ DUPLICATES MANAGED" : "✅ ALL SUCCESSFUL";
+
+            lstFailedInjections.Items.Add($"🎯 Overall Status: {overallStatus}");
+            lstFailedInjections.Items.Add("");
+
+            // === PROCESSING TOTALS ===
+            lstFailedInjections.Items.Add("📊 PROCESSING TOTALS:");
+            lstFailedInjections.Items.Add($"   • Orders Processed: {totalOrderResults}");
+            lstFailedInjections.Items.Add($"   • Quotes Processed: {totalQuoteResults}");
+            lstFailedInjections.Items.Add($"   • Revisions Processed: {totalRevisionResults}");
+            lstFailedInjections.Items.Add($"   • Total Items: {totalOrderResults + totalQuoteResults + totalRevisionResults}");
+            lstFailedInjections.Items.Add("");
+
+            // === ERROR SUMMARY === - FIXED: Combined injection failures counter
+            lstFailedInjections.Items.Add("🚨 ERROR SUMMARY:");
+            lstFailedInjections.Items.Add($"   • Business Errors: {businessErrors} (Rule violations, validation failures)");
+            lstFailedInjections.Items.Add($"   • Injection Failures: {totalInjectionFailures} (Technical/API failures + real failed injections)");
+            lstFailedInjections.Items.Add($"   • Managed Duplicates: {totalMkgDuplicates} (Auto-skipped, not errors)");
+            lstFailedInjections.Items.Add("");
+
+            // === SUCCESS RATES === - FIXED: Use combined failure count
+            var totalProcessed = totalOrderResults + totalQuoteResults + totalRevisionResults;
+            if (totalProcessed > 0)
+            {
+                var totalFailures = businessErrors + totalInjectionFailures;
+                var successfulItems = totalProcessed - totalFailures;
+                var successRate = (double)successfulItems / totalProcessed * 100;
+
+                lstFailedInjections.Items.Add("📈 SUCCESS METRICS:");
+                lstFailedInjections.Items.Add($"   • Successful Injections: {successfulItems}/{totalProcessed} ({successRate:F1}%)");
+                lstFailedInjections.Items.Add($"   • Failed Injections: {totalFailures}/{totalProcessed} ({(100 - successRate):F1}%)");
+
+                if (totalMkgDuplicates > 0)
+                    lstFailedInjections.Items.Add($"   • Duplicates Handled: {totalMkgDuplicates} (Automatically managed)");
+            }
+
+            lstFailedInjections.Items.Add("");
+            lstFailedInjections.Items.Add("──────────────────────────────────────────");
+        }
+
+
+        private void DisplayDetailedErrorInformation(MkgOrderInjectionSummary orderSummary,
+                                           MkgQuoteInjectionSummary quoteSummary,
+                                           MkgRevisionInjectionSummary revisionSummary,
+                                           int businessErrors, int injectionErrors, int totalMkgDuplicates)
+        {
+            lstFailedInjections.Items.Add("");
+            lstFailedInjections.Items.Add("══════════════════════════════════════════");
+            lstFailedInjections.Items.Add("        DETAILED ERROR INFORMATION");
+            lstFailedInjections.Items.Add("══════════════════════════════════════════");
+            lstFailedInjections.Items.Add("");
+
+            // === BUSINESS ERRORS SECTION ===
+            if (businessErrors > 0)
+            {
+                lstFailedInjections.Items.Add($"🚨 BUSINESS ERRORS ({businessErrors}):");
+                lstFailedInjections.Items.Add("   These are rule violations that require attention:");
+                lstFailedInjections.Items.Add("");
+
+                DisplayBusinessErrorDetails(orderSummary, quoteSummary, revisionSummary);
+                lstFailedInjections.Items.Add("");
+            }
+
+            // === INJECTION FAILURES SECTION === - NEW: Include injection errors
+            if (injectionErrors > 0)
+            {
+                lstFailedInjections.Items.Add($"🔧 INJECTION FAILURES ({injectionErrors}):");
+                lstFailedInjections.Items.Add("   These are technical/API failures that require attention:");
+                lstFailedInjections.Items.Add("");
+
+                DisplayInjectionErrorDetails(orderSummary, quoteSummary, revisionSummary);
+                lstFailedInjections.Items.Add("");
+            }
+
+            // === MANAGED DUPLICATES SECTION === - NEW: Include duplicates
+            if (totalMkgDuplicates > 0)
+            {
+                lstFailedInjections.Items.Add($"🔄 MANAGED DUPLICATES ({totalMkgDuplicates}):");
+                lstFailedInjections.Items.Add("   These duplicates were automatically handled:");
+                lstFailedInjections.Items.Add("");
+
+                DisplayDuplicateDetails(orderSummary, quoteSummary, revisionSummary);
+                lstFailedInjections.Items.Add("");
+            }
+
+            // === ORDER FAILURES SECTION ===
+            var orderFailures = orderSummary?.OrderResults?.Where(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")).ToList();
+            if (orderFailures?.Any() == true)
+            {
+                lstFailedInjections.Items.Add($"📦 ORDER FAILURES ({orderFailures.Count}):");
+                foreach (var failure in orderFailures)
+                {
+                    lstFailedInjections.Items.Add($"   • Article: {failure.ArtiCode}");
+                    lstFailedInjections.Items.Add($"     Error: {failure.ErrorMessage}");
+                    lstFailedInjections.Items.Add($"     Status: {failure.HttpStatusCode}");
+                    if (!string.IsNullOrEmpty(failure.PoNumber))
+                        lstFailedInjections.Items.Add($"     PO Number: {failure.PoNumber}");
+                    if (failure.ValidationErrors?.Any() == true)
+                        lstFailedInjections.Items.Add($"     Validation Issues: {string.Join(", ", failure.ValidationErrors)}");
+                    lstFailedInjections.Items.Add("");
+                }
+                lstFailedInjections.Items.Add("");
+            }
+
+            // === QUOTE FAILURES SECTION ===
+            var quoteFailures = quoteSummary?.QuoteResults?.Where(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")).ToList();
+            if (quoteFailures?.Any() == true)
+            {
+                lstFailedInjections.Items.Add($"💰 QUOTE FAILURES ({quoteFailures.Count}):");
+                foreach (var failure in quoteFailures)
+                {
+                    lstFailedInjections.Items.Add($"   • Article: {failure.ArtiCode}");
+                    lstFailedInjections.Items.Add($"     Error: {failure.ErrorMessage}");
+                    lstFailedInjections.Items.Add($"     Status: {failure.HttpStatusCode}");
+                    if (!string.IsNullOrEmpty(failure.RfqNumber))
+                        lstFailedInjections.Items.Add($"     RFQ Number: {failure.RfqNumber}");
+                    if (failure.ValidationErrors?.Any() == true)
+                        lstFailedInjections.Items.Add($"     Validation Issues: {string.Join(", ", failure.ValidationErrors)}");
+                    lstFailedInjections.Items.Add("");
+                }
+                lstFailedInjections.Items.Add("");
+            }
+
+            // === REVISION FAILURES SECTION ===
+            var revisionFailures = revisionSummary?.RevisionResults?.Where(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")).ToList();
+            if (revisionFailures?.Any() == true)
+            {
+                lstFailedInjections.Items.Add($"🔄 REVISION FAILURES ({revisionFailures.Count}):");
+                foreach (var failure in revisionFailures)
+                {
+                    lstFailedInjections.Items.Add($"   • Article: {failure.ArtiCode}");
+                    lstFailedInjections.Items.Add($"     Error: {failure.ErrorMessage}");
+                    lstFailedInjections.Items.Add($"     Status: {failure.HttpStatusCode}");
+                    if (!string.IsNullOrEmpty(failure.CurrentRevision))
+                        lstFailedInjections.Items.Add($"     Current Revision: {failure.CurrentRevision}");
+                    if (!string.IsNullOrEmpty(failure.NewRevision))
+                        lstFailedInjections.Items.Add($"     New Revision: {failure.NewRevision}");
+                    if (failure.ValidationErrors?.Any() == true)
+                        lstFailedInjections.Items.Add($"     Validation Issues: {string.Join(", ", failure.ValidationErrors)}");
+                    lstFailedInjections.Items.Add("");
+                }
+                lstFailedInjections.Items.Add("");
+            }
+
+            // === TROUBLESHOOTING SECTION ===
+            lstFailedInjections.Items.Add("🔧 TROUBLESHOOTING RECOMMENDATIONS:");
+            lstFailedInjections.Items.Add("   • Check MKG API connectivity and credentials");
+            lstFailedInjections.Items.Add("   • Verify data format matches expected schema");
+            lstFailedInjections.Items.Add("   • Review business rules and validation logic");
+            lstFailedInjections.Items.Add("   • Contact system administrator for persistent issues");
+            lstFailedInjections.Items.Add("");
+            lstFailedInjections.Items.Add("──────────────────────────────────────────");
+        }
+
+        private void DisplayDuplicateDetails(MkgOrderInjectionSummary orderSummary,
+                                    MkgQuoteInjectionSummary quoteSummary,
+                                    MkgRevisionInjectionSummary revisionSummary)
+        {
+            var duplicatesFound = new List<string>();
+
+            // Check orders for duplicates
+            var orderDuplicates = orderSummary?.OrderResults?
+                .Where(r => r.HttpStatusCode.Contains("DUPLICATE"))
+                .ToList();
+
+            if (orderDuplicates?.Any() == true)
+            {
+                foreach (var duplicate in orderDuplicates)
+                {
+                    duplicatesFound.Add($"Order {duplicate.ArtiCode}: Already exists in MKG system");
+                }
+            }
+
+            // Check quotes for duplicates
+            var quoteDuplicates = quoteSummary?.QuoteResults?
+                .Where(r => r.HttpStatusCode.Contains("DUPLICATE"))
+                .ToList();
+
+            if (quoteDuplicates?.Any() == true)
+            {
+                foreach (var duplicate in quoteDuplicates)
+                {
+                    duplicatesFound.Add($"Quote {duplicate.ArtiCode}: Already exists in MKG system");
+                }
+            }
+
+            // Check revisions for duplicates
+            var revisionDuplicates = revisionSummary?.RevisionResults?
+                .Where(r => r.HttpStatusCode.Contains("DUPLICATE"))
+                .ToList();
+
+            if (revisionDuplicates?.Any() == true)
+            {
+                foreach (var duplicate in revisionDuplicates)
+                {
+                    duplicatesFound.Add($"Revision {duplicate.ArtiCode}: Already exists in MKG system");
+                }
+            }
+
+            // Display ALL duplicates found
+            if (duplicatesFound.Any())
+            {
+                foreach (var duplicate in duplicatesFound)
+                {
+                    lstFailedInjections.Items.Add($"   • {duplicate}");
+                }
+                lstFailedInjections.Items.Add("   • These were automatically skipped to prevent data corruption");
+                lstFailedInjections.Items.Add("   • No manual action required");
+            }
+            else
+            {
+                lstFailedInjections.Items.Add("   • No specific duplicate details available");
+                lstFailedInjections.Items.Add("   • Duplicates were handled automatically during processing");
+            }
+        }
+        private void DisplayInjectionErrorDetails(MkgOrderInjectionSummary orderSummary,
+                                         MkgQuoteInjectionSummary quoteSummary,
+                                         MkgRevisionInjectionSummary revisionSummary)
+        {
+            var injectionErrorsFound = new List<string>();
+
+            // FIXED: Check test errors first
+            var testInjectionErrors = _testErrors?.Where(r => !r.Success && r.HttpStatusCode != "BUSINESS_ERROR" && !r.HttpStatusCode.Contains("DUPLICATE")).ToList();
+            if (testInjectionErrors?.Any() == true)
+            {
+                foreach (var error in testInjectionErrors)
+                {
+                    injectionErrorsFound.Add($"Order {error.ArtiCode}: {error.ErrorMessage}");
+                }
+            }
+
+            // Check orders for injection errors
+            var orderInjectionErrors = orderSummary?.OrderResults?
+                .Where(r => !r.Success && r.HttpStatusCode != "BUSINESS_ERROR" && !r.HttpStatusCode.Contains("DUPLICATE"))
+                .ToList();
+
+            if (orderInjectionErrors?.Any() == true)
+            {
+                foreach (var error in orderInjectionErrors)
+                {
+                    injectionErrorsFound.Add($"Order {error.ArtiCode}: {error.ErrorMessage}");
+                }
+            }
+
+            // Check quotes for injection errors
+            var quoteInjectionErrors = quoteSummary?.QuoteResults?
+                .Where(r => !r.Success && r.HttpStatusCode != "BUSINESS_ERROR" && !r.HttpStatusCode.Contains("DUPLICATE"))
+                .ToList();
+
+            if (quoteInjectionErrors?.Any() == true)
+            {
+                foreach (var error in quoteInjectionErrors)
+                {
+                    injectionErrorsFound.Add($"Quote {error.ArtiCode}: {error.ErrorMessage}");
+                }
+            }
+
+            // Check revisions for injection errors
+            var revisionInjectionErrors = revisionSummary?.RevisionResults?
+                .Where(r => !r.Success && r.HttpStatusCode != "BUSINESS_ERROR" && !r.HttpStatusCode.Contains("DUPLICATE"))
+                .ToList();
+
+            if (revisionInjectionErrors?.Any() == true)
+            {
+                foreach (var error in revisionInjectionErrors)
+                {
+                    injectionErrorsFound.Add($"Revision {error.ArtiCode}: {error.ErrorMessage}");
+                }
+            }
+
+            // Display ALL injection errors found
+            if (injectionErrorsFound.Any())
+            {
+                foreach (var error in injectionErrorsFound)
+                {
+                    lstFailedInjections.Items.Add($"   • {error}");
+                }
+            }
+            else
+            {
+                lstFailedInjections.Items.Add("   • No specific injection error details available");
+                lstFailedInjections.Items.Add("   • Check API connectivity and technical logs");
+            }
+        }
+
+
+        private void DisplayBusinessErrorDetails(MkgOrderInjectionSummary orderSummary,
+                                       MkgQuoteInjectionSummary quoteSummary,
+                                       MkgRevisionInjectionSummary revisionSummary)
+        {
+            var businessErrorsFound = new List<string>();
+
+            // FIXED: Check test errors first
+            var testBusinessErrors = _testErrors?.Where(r => !r.Success && r.HttpStatusCode == "BUSINESS_ERROR").ToList();
+            if (testBusinessErrors?.Any() == true)
+            {
+                foreach (var error in testBusinessErrors)
+                {
+                    businessErrorsFound.Add($"Order {error.ArtiCode}: {error.ErrorMessage}");
+                }
+            }
+
+            // Check orders for business errors
+            var orderBusinessErrors = orderSummary?.OrderResults?
+                .Where(r => !r.Success && r.HttpStatusCode == "BUSINESS_ERROR")
+                .ToList();
+
+            if (orderBusinessErrors?.Any() == true)
+            {
+                foreach (var error in orderBusinessErrors)
+                {
+                    businessErrorsFound.Add($"Order {error.ArtiCode}: {error.ErrorMessage}");
+                }
+            }
+
+            // Check quotes for business errors
+            var quoteBusinessErrors = quoteSummary?.QuoteResults?
+                .Where(r => !r.Success && r.HttpStatusCode == "BUSINESS_ERROR")
+                .ToList();
+
+            if (quoteBusinessErrors?.Any() == true)
+            {
+                foreach (var error in quoteBusinessErrors)
+                {
+                    businessErrorsFound.Add($"Quote {error.ArtiCode}: {error.ErrorMessage}");
+                }
+            }
+
+            // Check revisions for business errors
+            var revisionBusinessErrors = revisionSummary?.RevisionResults?
+                .Where(r => !r.Success && r.HttpStatusCode == "BUSINESS_ERROR")
+                .ToList();
+
+            if (revisionBusinessErrors?.Any() == true)
+            {
+                foreach (var error in revisionBusinessErrors)
+                {
+                    businessErrorsFound.Add($"Revision {error.ArtiCode}: {error.ErrorMessage}");
+                }
+            }
+
+            // Display ALL business errors found
+            if (businessErrorsFound.Any())
+            {
+                foreach (var error in businessErrorsFound)
+                {
+                    lstFailedInjections.Items.Add($"   • {error}");
+                }
+            }
+            else
+            {
+                lstFailedInjections.Items.Add("   • No specific business error details available");
+                lstFailedInjections.Items.Add("   • Check validation logic and business rules");
             }
         }
         private void DisplayExtractedMkgResults(MkgResultsExtractor.MkgResultsData data)
@@ -585,171 +798,7 @@ namespace Mkg_Elcotec_Automation.Forms
             lstMkgResults.Items.Add("");
         }
 
-
-        // Enhanced Failed Injections Display
-        private void DisplayFailedInjectionsEnhanced(
-      MkgOrderInjectionSummary orderSummary,
-      MkgQuoteInjectionSummary quoteSummary,
-      MkgRevisionInjectionSummary revisionSummary)
-        {
-            if (lstFailedInjections == null) return;
-
-            lstFailedInjections.Items.Clear();
-
-            // Count real failures vs duplicates
-            var orderFailures = orderSummary?.OrderResults?.Where(r => !r.Success && !r.HttpStatusCode.Contains("DUPLICATE")).ToList() ?? new List<MkgOrderResult>();
-            var quoteFailures = quoteSummary?.QuoteResults?.Where(r => !r.Success).ToList() ?? new List<MkgQuoteResult>();
-            var revisionFailures = revisionSummary?.RevisionResults?.Where(r => !r.Success).ToList() ?? new List<MkgRevisionResult>();
-
-            var orderDuplicates = orderSummary?.OrderResults?.Where(r => !r.Success && r.HttpStatusCode.Contains("DUPLICATE")).ToList() ?? new List<MkgOrderResult>();
-
-            var totalFailures = orderFailures.Count + quoteFailures.Count + revisionFailures.Count;
-            var totalDuplicates = orderDuplicates.Count;
-
-            // Header
-            lstFailedInjections.Items.Add("=== INJECTION ANALYSIS REPORT ===");
-            lstFailedInjections.Items.Add($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-            lstFailedInjections.Items.Add("");
-
-            if (totalFailures == 0 && totalDuplicates == 0)
-            {
-                // Perfect run
-                lstFailedInjections.Items.Add("🎉 === PERFECT INJECTION RUN ===");
-                lstFailedInjections.Items.Add("✅ All systems functioning optimally");
-                lstFailedInjections.Items.Add("✅ No system failures detected");
-                lstFailedInjections.Items.Add("✅ No configuration issues found");
-                lstFailedInjections.Items.Add("✅ API connections stable");
-                lstFailedInjections.Items.Add("✅ All data successfully processed");
-
-                if (lblFailedStatus != null)
-                {
-                    lblFailedStatus.Text = "All systems operational - No issues detected";
-                    lblFailedStatus.ForeColor = Color.Green;
-                }
-            }
-            else if (totalFailures == 0)
-            {
-                // Only duplicates
-                lstFailedInjections.Items.Add("✅ === NO SYSTEM FAILURES ===");
-                lstFailedInjections.Items.Add($"🔄 {totalDuplicates} duplicates automatically handled");
-                lstFailedInjections.Items.Add("");
-                lstFailedInjections.Items.Add("📊 DUPLICATE ANALYSIS:");
-                lstFailedInjections.Items.Add("• Cross-email duplicates filtered during processing");
-                lstFailedInjections.Items.Add("• MKG system duplicates detected and skipped");
-                lstFailedInjections.Items.Add("• No manual action required");
-                lstFailedInjections.Items.Add("• Duplicates prevent data corruption");
-
-                if (lblFailedStatus != null)
-                {
-                    lblFailedStatus.Text = $"Systems healthy - {totalDuplicates} duplicates handled automatically";
-                    lblFailedStatus.ForeColor = Color.Orange;
-                }
-            }
-            else
-            {
-                // Real failures exist
-                lstFailedInjections.Items.Add($"❌ === SYSTEM FAILURES DETECTED ({totalFailures}) ===");
-
-                if (lblFailedStatus != null)
-                {
-                    lblFailedStatus.Text = $"Action required - {totalFailures} system failures detected";
-                    lblFailedStatus.ForeColor = Color.Red;
-                }
-
-                DisplayOrderFailuresEnhanced(orderFailures);
-                DisplayQuoteFailuresEnhanced(quoteFailures);
-                DisplayRevisionFailuresEnhanced(revisionFailures);
-
-                if (totalDuplicates > 0)
-                {
-                    lstFailedInjections.Items.Add($"🔄 === DUPLICATES HANDLED ({totalDuplicates}) ===");
-                    lstFailedInjections.Items.Add("These were automatically processed and require no action.");
-                }
-            }
-        }
-        private void DisplayOrderFailuresEnhanced(List<MkgOrderResult> failures)
-        {
-            if (!failures.Any()) return;
-
-            lstFailedInjections.Items.Add($"📦 ORDER SYSTEM FAILURES ({failures.Count}):");
-            foreach (var failure in failures.Take(10))
-            {
-                lstFailedInjections.Items.Add($"   • {failure.ArtiCode}: {failure.ErrorMessage}");
-                if (!string.IsNullOrEmpty(failure.HttpStatusCode))
-                    lstFailedInjections.Items.Add($"     HTTP: {failure.HttpStatusCode}");
-            }
-            if (failures.Count > 10)
-                lstFailedInjections.Items.Add($"   ... and {failures.Count - 10} more order failures");
-            lstFailedInjections.Items.Add("");
-        }
-
-        /// <summary>
-        /// Display quote failures in enhanced format
-        /// </summary>
-        private void DisplayQuoteFailuresEnhanced(List<MkgQuoteResult> failures)
-        {
-            if (!failures.Any()) return;
-
-            lstFailedInjections.Items.Add($"💰 QUOTE SYSTEM FAILURES ({failures.Count}):");
-            foreach (var failure in failures.Take(10))
-            {
-                lstFailedInjections.Items.Add($"   • {failure.ArtiCode}: {failure.ErrorMessage}");
-            }
-            if (failures.Count > 10)
-                lstFailedInjections.Items.Add($"   ... and {failures.Count - 10} more quote failures");
-            lstFailedInjections.Items.Add("");
-        }
-
-        /// <summary>
-        /// Display revision failures in enhanced format
-        /// </summary>
-        private void DisplayRevisionFailuresEnhanced(List<MkgRevisionResult> failures)
-        {
-            if (!failures.Any()) return;
-
-            lstFailedInjections.Items.Add($"🔧 REVISION SYSTEM FAILURES ({failures.Count}):");
-            foreach (var failure in failures.Take(10))
-            {
-                lstFailedInjections.Items.Add($"   • {failure.ArtiCode}: {failure.ErrorMessage}");
-            }
-            if (failures.Count > 10)
-                lstFailedInjections.Items.Add($"   ... and {failures.Count - 10} more revision failures");
-            lstFailedInjections.Items.Add("");
-        }
-     
-        /// <summary>
-        /// Enhanced MKG Results Display using MkgResultsExtractor for comprehensive data
-        /// </summary>
-        private void DisplayMkgResults(
-            MkgOrderInjectionSummary orderSummary,
-            MkgQuoteInjectionSummary quoteSummary = null,
-            MkgRevisionInjectionSummary revisionSummary = null,
-            string rawResultsText = null)
-        {
-            try
-            {
-                if (lstMkgResults != null)
-                {
-                    lstMkgResults.Items.Clear();
-
-                    // If we have raw results text, use the extractor for detailed parsing
-                    if (!string.IsNullOrEmpty(rawResultsText))
-                    {
-                        var extractedData = MkgResultsExtractor.ExtractMkgResults(rawResultsText);
-                        DisplayExtractedMkgResults(extractedData);
-                        return;
-                    }
-
-                    // Fallback to summary display if no raw text available
-                    GenerateComprehensiveMkgResults(orderSummary, quoteSummary, revisionSummary);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error displaying MKG results: {ex.Message}");
-                lstMkgResults?.Items.Add($"❌ Error displaying results: {ex.Message}");
-            }
-        }
+      
         private static string FormatTreeStructure(Dictionary<string, object> data)
         {
             var sb = new StringBuilder();
@@ -766,134 +815,7 @@ namespace Mkg_Elcotec_Automation.Forms
 
             return sb.ToString();
         }
-        private void DisplayOrderSummaryDetails(MkgOrderInjectionSummary orderSummary)
-        {
-            var orderData = new Dictionary<string, object>
-            {
-                ["📦 ORDER INJECTION RESULTS"] = new Dictionary<string, object>
-                {
-                    ["Processing Time"] = orderSummary.ProcessingTime.ToString(),
-                    ["Total Orders"] = orderSummary.TotalOrders.ToString(),
-                    ["Successful"] = orderSummary.SuccessfulInjections.ToString(),
-                    ["Failed"] = orderSummary.FailedInjections.ToString(),
-                    ["Duplicates"] = orderSummary.DuplicatesDetected.ToString()
-                }
-            };
 
-            if (orderSummary.OrderResults?.Any() == true)
-            {
-                var orderDetails = new Dictionary<string, object>();
-                var groupedByPo = orderSummary.OrderResults.GroupBy(r => r.PoNumber ?? "Unknown");
-
-                foreach (var poGroup in groupedByPo)
-                {
-                    var successCount = poGroup.Count(r => r.Success);
-                    var failCount = poGroup.Count(r => !r.Success && !r.IsDuplicate && r.ErrorMessage?.Contains("Duplicate") != true);
-                    var dupCount = poGroup.Count(r => r.IsDuplicate || r.ErrorMessage?.Contains("Duplicate") == true);
-
-                    var poData = new Dictionary<string, object>
-                    {
-                        ["Status"] = $"✅{successCount} 🔄{dupCount} ❌{failCount}"
-                    };
-
-                    // Add individual order items
-                    foreach (var order in poGroup.Take(5)) // Limit to first 5 for display
-                    {
-                        var statusIcon = order.Success ? "✅" : order.IsDuplicate ? "🔄" : "❌";
-                        var orderItemData = new Dictionary<string, object>
-                        {
-                            ["HTTP Status"] = order.HttpStatusCode ?? "N/A",
-                            ["Processed At"] = order.ProcessedAt.ToString("HH:mm:ss")
-                        };
-
-                        if (!string.IsNullOrEmpty(order.ErrorMessage))
-                            orderItemData["Error"] = order.ErrorMessage;
-
-                        poData[$"{statusIcon} {order.ArtiCode}"] = orderItemData;
-                    }
-
-                    if (poGroup.Count() > 5)
-                        poData[$"... and {poGroup.Count() - 5} more items"] = "";
-
-                    orderDetails[$"PO: {poGroup.Key}"] = poData;
-                }
-
-                ((Dictionary<string, object>)orderData["📦 ORDER INJECTION RESULTS"])["Order Details"] = orderDetails;
-            }
-
-            string formattedOrders = FormatTreeStructure(orderData);
-            var lines = formattedOrders.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var line in lines)
-            {
-                lstMkgResults.Items.Add(line);
-            }
-            lstMkgResults.Items.Add("");
-        }
-
-        // Replace your existing DisplayQuoteSummaryDetails method:
-        private void DisplayQuoteSummaryDetails(MkgQuoteInjectionSummary quoteSummary)
-        {
-            var quoteData = new Dictionary<string, object>
-            {
-                ["💰 QUOTE INJECTION RESULTS"] = new Dictionary<string, object>
-                {
-                    ["Processing Time"] = quoteSummary.ProcessingTime.ToString(),
-                    ["Total Quotes"] = quoteSummary.TotalQuotes.ToString(),
-                    ["Successful"] = quoteSummary.SuccessfulInjections.ToString(),
-                    ["Failed"] = quoteSummary.FailedInjections.ToString(),
-                    ["Duplicates"] = quoteSummary.DuplicatesDetected.ToString()
-                }
-            };
-
-            if (quoteSummary.QuoteResults?.Any() == true)
-            {
-                var quoteDetails = new Dictionary<string, object>();
-                var groupedByRfq = quoteSummary.QuoteResults.GroupBy(r => r.RfqNumber ?? "Unknown");
-
-                foreach (var rfqGroup in groupedByRfq)
-                {
-                    var successCount = rfqGroup.Count(r => r.Success);
-                    var failCount = rfqGroup.Count(r => !r.Success);
-
-                    var rfqData = new Dictionary<string, object>
-                    {
-                        ["Status"] = $"✅{successCount} ❌{failCount}"
-                    };
-
-                    // Add individual quote items
-                    foreach (var quote in rfqGroup.Take(5)) // Limit to first 5 for display
-                    {
-                        var statusIcon = quote.Success ? "✅" : "❌";
-                        var quoteItemData = new Dictionary<string, object>
-                        {
-                            ["Quoted Price"] = quote.QuotedPrice ?? "N/A",
-                        };
-
-                        if (!string.IsNullOrEmpty(quote.ErrorMessage))
-                            quoteItemData["Error"] = quote.ErrorMessage;
-
-                        rfqData[$"{statusIcon} {quote.ArtiCode}"] = quoteItemData;
-                    }
-
-                    if (rfqGroup.Count() > 5)
-                        rfqData[$"... and {rfqGroup.Count() - 5} more items"] = "";
-
-                    quoteDetails[$"RFQ: {rfqGroup.Key}"] = rfqData;
-                }
-
-                ((Dictionary<string, object>)quoteData["💰 QUOTE INJECTION RESULTS"])["Quote Details"] = quoteDetails;
-            }
-
-            string formattedQuotes = FormatTreeStructure(quoteData);
-            var lines = formattedQuotes.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var line in lines)
-            {
-                lstMkgResults.Items.Add(line);
-            }
-            lstMkgResults.Items.Add("");
-        }
 
         private static void FormatTreeItem(StringBuilder sb, string key, object value, string indent, bool isLast)
         {
@@ -919,69 +841,7 @@ namespace Mkg_Elcotec_Automation.Forms
         }
 
         // Add this method to your MkgOrderController.cs or wherever the injection results are being generated:
-        private void DisplayRevisionSummaryDetails(MkgRevisionInjectionSummary revisionSummary)
-        {
-            var revisionData = new Dictionary<string, object>
-            {
-                ["🔧 REVISION INJECTION RESULTS"] = new Dictionary<string, object>
-                {
-                    ["Processing Time"] = revisionSummary.ProcessingTime.ToString(),
-                    ["Total Revisions"] = revisionSummary.TotalRevisions.ToString(),
-                    ["Successful"] = revisionSummary.SuccessfulInjections.ToString(),
-                    ["Failed"] = revisionSummary.FailedInjections.ToString(),
-                    ["Duplicates"] = revisionSummary.DuplicatesDetected.ToString()
-                }
-            };
-
-            if (revisionSummary.RevisionResults?.Any() == true)
-            {
-                var revisionDetails = new Dictionary<string, object>();
-                var groupedByArticle = revisionSummary.RevisionResults.GroupBy(r => r.ArtiCode ?? "Unknown");
-
-                foreach (var articleGroup in groupedByArticle)
-                {
-                    var successCount = articleGroup.Count(r => r.Success);
-                    var failCount = articleGroup.Count(r => !r.Success);
-
-                    var articleData = new Dictionary<string, object>
-                    {
-                        ["Status"] = $"✅{successCount} ❌{failCount}"
-                    };
-
-                    // Add individual revision items
-                    foreach (var revision in articleGroup.Take(5)) // Limit to first 5 for display
-                    {
-                        var statusIcon = revision.Success ? "✅" : "❌";
-                        var revisionItemData = new Dictionary<string, object>
-                        {
-                            ["Change"] = $"{revision.CurrentRevision} → {revision.NewRevision}",
-                            ["Reason"] = revision.ChangeReason ?? "N/A"
-                        };
-
-                        if (!string.IsNullOrEmpty(revision.ErrorMessage))
-                            revisionItemData["Error"] = revision.ErrorMessage;
-
-                        articleData[$"{statusIcon} Revision"] = revisionItemData;
-                    }
-
-                    if (articleGroup.Count() > 5)
-                        articleData[$"... and {articleGroup.Count() - 5} more items"] = "";
-
-                    revisionDetails[$"Article: {articleGroup.Key}"] = articleData;
-                }
-
-                ((Dictionary<string, object>)revisionData["🔧 REVISION INJECTION RESULTS"])["Revision Details"] = revisionDetails;
-            }
-
-            string formattedRevisions = FormatTreeStructure(revisionData);
-            var lines = formattedRevisions.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var line in lines)
-            {
-                lstMkgResults.Items.Add(line);
-            }
-            lstMkgResults.Items.Add("");
-        }
+       
         private void GenerateComprehensiveMkgResults(
       MkgOrderInjectionSummary orderSummary,
       MkgQuoteInjectionSummary quoteSummary = null,
@@ -1597,20 +1457,6 @@ namespace Mkg_Elcotec_Automation.Forms
                 Console.WriteLine($"❌ Error setting up duplication service events: {ex.Message}");
             }
         }
-        // In Elcotec.cs - Remove the calls to UpdateFailedInjectionsTabHeaderColor during email import
-
-        // REMOVE this line from DisplayBasicHistoricalInfo method:
-        // UpdateFailedInjectionsTabHeaderColor(runInfo);
-
-        // REMOVE this line from DisplayHistoricalRunData method:  
-        // UpdateFailedInjectionsTabHeaderColor(historicalData);
-
-        // Also remove from UpdateStatusLabelsForDetailedHistory - replace UpdateTabColorsForHistoricalData call
-        // with conditional logic that only updates after MKG injection
-
-        // The UpdateFailedInjectionsTabHeaderColor method should ONLY be called:
-        // 1. After MKG injection is complete
-        // 2. When loading completed historical runs (not during import)
 
         private void DisplayBasicHistoricalInfo(RunHistoryItem runInfo)
         {
@@ -1882,10 +1728,14 @@ namespace Mkg_Elcotec_Automation.Forms
         // 🔧 FIXED: Proper status priority logic
         private TabStatus GetCurrentTabStatus()
         {
-            // RED takes highest priority - ONLY for actual injection errors, critical business errors, or price discrepancies
-            if (_hasInjectionFailures)
+            // Get injection errors from progress manager
+            var injectionErrors = _enhancedProgress?.GetInjectionErrors() ?? 0;
+            var businessErrors = _enhancedProgress?.GetBusinessErrors() ?? 0;
+
+            // RED takes highest priority - for injection failures OR business errors
+            if (_hasInjectionFailures || injectionErrors > 0 || businessErrors > 0)
             {
-                Console.WriteLine($"🔴 Tab status: RED - injection failures detected");
+                Console.WriteLine($"🔴 Tab status: RED - failures detected (injection: {injectionErrors}, business: {businessErrors}, hasInjectionFailures: {_hasInjectionFailures})");
                 return TabStatus.Red;
             }
 
@@ -1900,91 +1750,6 @@ namespace Mkg_Elcotec_Automation.Forms
             Console.WriteLine($"🟢 Tab status: GREEN - no issues detected");
             return TabStatus.Green;
         }
-        // 🔧 FIXED: Enhanced completion handler that properly tracks actual failures vs duplicates
-        private void CompleteRunWithProperStatus()
-        {
-            try
-            {
-                if (_currentRunId != Guid.Empty)
-                {
-                    // 🔧 Count ONLY real failures, not duplicates
-                    var realFailureCount = 0;
-
-                    // Count actual injection errors from your results (simple string check since ErrorResults is List<object>)
-                    if (_currentRunData?.ErrorResults != null)
-                    {
-                        realFailureCount = _currentRunData.ErrorResults
-                            .Count(e => {
-                                var errorText = e?.ToString() ?? "";
-                                return !errorText.Contains("DUPLICATE") &&
-                                       !errorText.Contains("already exists") &&
-                                       !errorText.Contains("MKG_DUPLICATE_SKIPPED");
-                            });
-                    }
-
-                    // Update run completion with accurate data
-                    _currentRunData.TotalFailuresAtCompletion = realFailureCount;
-                    _currentRunData.HasInjectionFailures = realFailureCount > 0;
-
-                    // Complete the run with proper status
-                    var finalStatus = realFailureCount > 0 ? "Failed" : "Completed";
-                    _runHistoryManager.CompleteRun(_currentRunId, finalStatus);
-
-                    Console.WriteLine($"✅ Run completed with status: {finalStatus}");
-                    Console.WriteLine($"   📊 Real failures: {realFailureCount}");
-                    Console.WriteLine($"   📊 Managed duplicates: {_totalDuplicatesInCurrentRun}");
-                    Console.WriteLine($"   📊 Final tab should be: {(realFailureCount > 0 ? "RED" : (_totalDuplicatesInCurrentRun > 0 ? "YELLOW" : "GREEN"))}");
-
-                    RefreshRunHistory();
-                    UpdateTabStatus();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error completing run: {ex.Message}");
-            }
-        }
-      
-       
-        
-        private void ShowBusinessErrors(MkgOrderInjectionSummary orderSummary, MkgQuoteInjectionSummary quoteSummary, MkgRevisionInjectionSummary revisionSummary)
-        {
-            var count = _enhancedProgress?.GetBusinessErrors() ?? 0;
-            lstFailedInjections.Items.Add($"🚨 B:Errors: {count} - Business rule violations");
-
-            if (count > 0)
-            {
-                if (orderSummary?.OrderResults != null)
-                {
-                    var failures = orderSummary.OrderResults.Where(r => !r.Success && r.HttpStatusCode == "BUSINESS_ERROR").Take(3);
-                    foreach (var f in failures)
-                        lstFailedInjections.Items.Add($"   • {f.ArtiCode}: {f.ErrorMessage}");
-                }
-            }
-            lstFailedInjections.Items.Add("");
-        }
-
-        private void ShowDuplicateErrors(MkgOrderInjectionSummary orderSummary, MkgQuoteInjectionSummary quoteSummary, MkgRevisionInjectionSummary revisionSummary)
-        {
-            var count = _enhancedProgress?.GetDuplicateErrors() ?? 0;
-            lstFailedInjections.Items.Add($"🔄 D:Errors: {count} - Duplicate items skipped");
-
-            if (count > 0)
-            {
-                if (orderSummary?.OrderResults != null)
-                {
-                    var duplicates = orderSummary.OrderResults.Where(r => r.HttpStatusCode == "MKG_DUPLICATE_SKIPPED").Take(3);
-                    foreach (var d in duplicates)
-                        lstFailedInjections.Items.Add($"   • {d.ArtiCode}: Already exists in MKG");
-                }
-            }
-            lstFailedInjections.Items.Add("");
-        }
-
-        
-        // ===== FIX TAB BUTTONS - 3 IDENTICAL BUTTONS ON EVERY TAB =====
-        // ===== RESTORE EXISTING WORKING TAB BUTTON CODE WITH 3 BUTTONS PER TAB =====
-        // ===== RESTORE EXISTING WORKING TAB BUTTON CODE WITH 3 BUTTONS PER TAB =====
 
         private void SetupEmailImportTab()
         {
@@ -3236,10 +3001,7 @@ namespace Mkg_Elcotec_Automation.Forms
                 Console.WriteLine($"❌ Error saving complete run data: {ex.Message}");
             }
         }
-        public void TestMethod123()
-        {
-            Console.WriteLine("Test method works!");
-        }
+
         private async void button2_Click(object sender, EventArgs e)
         {
             await ProcessMkgApiTest();
@@ -3322,19 +3084,10 @@ namespace Mkg_Elcotec_Automation.Forms
                         orderSummary = await mkgOrderController.InjectOrdersAsync(
                             allOrderLines,
                             new Progress<string>(status => LogMkgResultRealTime(status)),
-                            _enhancedProgress  // 🎯 ADD THIS LINE!
+                            _enhancedProgress
                         );
                         totalInjected += orderSummary.SuccessfulInjections;
                         totalFailed += orderSummary.FailedInjections;
-
-                        // ✅ FIXED: Increment error counter for each failed injection
-                        if (orderSummary.FailedInjections > 0 && _enhancedProgress != null)
-                        {
-                            for (int i = 0; i < orderSummary.FailedInjections; i++)
-                            {
-                                _enhancedProgress.IncrementInjectionErrors();
-                            }
-                        }
                     }
                 }
 
@@ -3360,15 +3113,6 @@ namespace Mkg_Elcotec_Automation.Forms
 
                         totalInjected += quoteSummary.SuccessfulInjections;
                         totalFailed += quoteSummary.FailedInjections;
-
-                        // ✅ FIXED: Increment error counter for each failed injection
-                        if (quoteSummary.FailedInjections > 0 && _enhancedProgress != null)
-                        {
-                            for (int i = 0; i < quoteSummary.FailedInjections; i++)
-                            {
-                                _enhancedProgress.IncrementInjectionErrors();
-                            }
-                        }
                     }
                 }
 
@@ -3394,20 +3138,58 @@ namespace Mkg_Elcotec_Automation.Forms
 
                         totalInjected += revisionSummary.SuccessfulInjections;
                         totalFailed += revisionSummary.FailedInjections;
+                    }
+                }
+                //ForceBusinessError();
+                //ForceInjectionError();
+                
+                Console.WriteLine("🔍 COUNTING INJECTION ERRORS:");
 
-                        // ✅ FIXED: Increment error counter for each failed injection
-                        if (revisionSummary.FailedInjections > 0 && _enhancedProgress != null)
-                        {
-                            for (int i = 0; i < revisionSummary.FailedInjections; i++)
-                            {
-                                _enhancedProgress.IncrementInjectionErrors();
-                            }
-                        }
+                if (orderSummary?.OrderResults != null)
+                {
+                    var realFailures = orderSummary.OrderResults.Where(r => !r.Success &&
+                        !(r.HttpStatusCode?.Contains("DUPLICATE") == true ||
+                          r.ErrorMessage?.Contains("DUPLICATE") == true ||
+                          r.ErrorMessage?.Contains("already exists") == true)).ToList();
+
+                    Console.WriteLine($"📊 Real order failures found: {realFailures.Count}");
+
+                    foreach (var realFailure in realFailures)
+                    {
+                        _enhancedProgress?.IncrementInjectionErrors();
+                        Console.WriteLine($"🔧 Incremented I:Errors counter for {realFailure.ArtiCode}");
+                    }
+                }
+
+                if (quoteSummary?.QuoteResults != null)
+                {
+                    var realQuoteFailures = quoteSummary.QuoteResults.Where(r => !r.Success &&
+                        !(r.HttpStatusCode?.Contains("DUPLICATE") == true ||
+                          r.ErrorMessage?.Contains("DUPLICATE") == true ||
+                          r.ErrorMessage?.Contains("already exists") == true)).ToList();
+
+                    foreach (var realFailure in realQuoteFailures)
+                    {
+                        _enhancedProgress?.IncrementInjectionErrors();
+                        Console.WriteLine($"🔧 Incremented I:Errors counter for quote {realFailure.ArtiCode}");
+                    }
+                }
+
+                if (revisionSummary?.RevisionResults != null)
+                {
+                    var realRevisionFailures = revisionSummary.RevisionResults.Where(r => !r.Success &&
+                        !(r.HttpStatusCode?.Contains("DUPLICATE") == true ||
+                          r.ErrorMessage?.Contains("DUPLICATE") == true ||
+                          r.ErrorMessage?.Contains("already exists") == true)).ToList();
+
+                    foreach (var realFailure in realRevisionFailures)
+                    {
+                        _enhancedProgress?.IncrementInjectionErrors();
+                        Console.WriteLine($"🔧 Incremented I:Errors counter for revision {realFailure.ArtiCode}");
                     }
                 }
 
                 // Generate comprehensive results and display using extractor
-                GenerateComprehensiveMkgResults(orderSummary, quoteSummary, revisionSummary);
                 GenerateComprehensiveMkgResults(orderSummary, quoteSummary, revisionSummary);
 
                 // Update Failed Injections Tab with all failure data
@@ -4950,7 +4732,73 @@ namespace Mkg_Elcotec_Automation.Forms
                 }
             }
         }
+        public void ForceInjectionError()
+        {
+            _enhancedProgress?.IncrementInjectionErrors();
+            _hasInjectionFailures = true;
 
+            if (_currentRunData != null)
+            {
+                _currentRunData.HasInjectionFailures = true;
+                _currentRunData.TotalFailuresAtCompletion++;
+            }
+
+            // Create a test order result with injection error
+            var testInjectionError = new MkgOrderResult
+            {
+                ArtiCode = "TEST-INJECTION-002",
+                PoNumber = "PO-TEST-INJ",
+                Success = false,
+                ErrorMessage = "🧪 TEST: API connection timeout - Server unreachable",
+                HttpStatusCode = "500",
+                ValidationErrors = new List<string> { "Network timeout", "Retry limit exceeded" },
+                ProcessedAt = DateTime.Now
+            };
+
+            // Add to global test errors list
+            _testErrors.Add(testInjectionError);
+
+            UpdateTabStatus();
+
+            // Immediately update the display
+            UpdateFailedInjectionsTab(_lastOrderSummary, _lastQuoteSummary, _lastRevisionSummary);
+
+            Console.WriteLine("🔧 FORCED 1 INJECTION ERROR WITH TEST DATA");
+        }
+
+        public void ForceBusinessError()
+        {
+            _enhancedProgress?.IncrementBusinessErrors("TEST-Business", "Forced business rule violation for testing");
+            _hasInjectionFailures = true;
+
+            if (_currentRunData != null)
+            {
+                _currentRunData.HasInjectionFailures = true;
+                _currentRunData.TotalFailuresAtCompletion++;
+            }
+
+            // Create a test order result with business error
+            var testBusinessError = new MkgOrderResult
+            {
+                ArtiCode = "TEST-BUSINESS-001",
+                PoNumber = "PO-TEST-BIZ",
+                Success = false,
+                ErrorMessage = "🧪 TEST: Business rule violation - Price exceeds customer limit",
+                HttpStatusCode = "BUSINESS_ERROR",
+                ValidationErrors = new List<string> { "Price validation failed", "Customer credit limit exceeded" },
+                ProcessedAt = DateTime.Now
+            };
+
+            // Add to global test errors list
+            _testErrors.Add(testBusinessError);
+
+            UpdateTabStatus();
+
+            // Immediately update the display
+            UpdateFailedInjectionsTab(_lastOrderSummary, _lastQuoteSummary, _lastRevisionSummary);
+
+            Console.WriteLine("🚨 FORCED 1 BUSINESS ERROR WITH TEST DATA");
+        }
 
         private bool HasProperty(dynamic obj, string propertyName)
         {

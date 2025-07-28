@@ -7,15 +7,10 @@ namespace Mkg_Elcotec_Automation.Models
     {
         Green,  // No errors, no duplicates
         Yellow, // Duplicates detected, no injection errors
-        Red     // Injection errors present
+        Red,    // Injection errors present
+        Blue    // Email import running
     }
 
-    public enum TabColorStatus
-    {
-        Green,      // No failures, all successful
-        Orange,     // Warnings/partial failures (duplicates detected but handled)  
-        Red         // Critical failures
-    }
     /// <summary>
     /// Progress tracking for workflows
     /// </summary>
@@ -56,7 +51,7 @@ namespace Mkg_Elcotec_Automation.Models
         public int TotalDuplicatesDetected { get; set; } = 0;
         public DateTime? LastDuplicateDetectionUpdate { get; set; }
         public bool HasInjectionWarnings { get; set; } = false; // NEW
-        public TabColorStatus TabColorStatus { get; set; } = TabColorStatus.Green; // NEW
+        public TabStatus TabColorStatus { get; set; } = TabStatus.Green; // NEW
         public int TotalWarningsAtCompletion { get; set; } = 0; // NEW
     }
 
