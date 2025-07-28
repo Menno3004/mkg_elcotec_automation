@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Configuration;
 using System.Threading;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace Mkg_Elcotec_Automation.Controllers
 {
@@ -27,7 +28,206 @@ namespace Mkg_Elcotec_Automation.Controllers
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Inject a single order line into MKG system - FIXED with complete business field mapping
+        /// </summary>
+        private async Task<MkgOrderResult> InjectSingleOrderLine(
+            OrderLine orderLine,
+            string mkgOrderNumber,
+            EnhancedProgressManager progressManager = null)
+        {
+            try
+            {
+                LogDebug($"🔄 Injecting OrderLine {orderLine.ArtiCode} into MKG Order {mkgOrderNumber}");
 
+                // Apply unit conversion
+                var originalUnit = orderLine.Unit ?? "PCS";
+                var validUnit = ConvertToValidUnit(originalUnit);
+
+                if (originalUnit != validUnit)
+                {
+                    LogDebug($"🔄 Order unit conversion: '{originalUnit}' → '{validUnit}' for {orderLine.ArtiCode}");
+                }
+
+                // ✅ FIXED: Complete business field mapping with all required MKG fields
+                var orderLineData = new
+                {
+                    request = new
+                    {
+                        InputData = new
+                        {
+                            vorr = new[]
+                            {
+                        new
+                        {
+                            // ✅ CORE IDENTIFICATION FIELDS
+                            admi_num = 1,  // Administration number
+                            vorh_num = mkgOrderNumber,  // MKG Order number
+                            
+                            // ✅ ARTICLE & DESCRIPTION - THESE WERE MISSING!
+                            vorr_arti_code = orderLine.ArtiCode,  // Article code
+                            vorr_oms_1 = string.IsNullOrEmpty(orderLine.Description)
+                                ? orderLine.ArtiCode
+                                : orderLine.Description,  // Description (was only basic field before)
+                            
+                            // ✅ QUANTITY & UNIT FIELDS - CRITICAL MISSING DATA!
+                            vorr_order_aantal = ParseQuantityToDecimal(orderLine.Quantity),  // Order quantity
+                            vorr_eenh_order = validUnit,  // Order unit
+                            
+                            // ✅ PRICING FIELDS - CRITICAL MISSING DATA!
+                            vorr_prijs_order = ParsePriceToDecimal(orderLine.UnitPrice),  // Unit price
+                            vorr_totaal_prijs = ParsePriceToDecimal(orderLine.TotalPrice),  // Total price
+                            vorr_prijs = ParsePriceToDecimal(orderLine.UnitPrice),  // Price field (alternative)
+                            vorr_totaal_excl = ParsePriceToDecimal(orderLine.TotalPrice),  // Total excluding VAT
+                            
+                            // ✅ DELIVERY & REFERENCE FIELDS - BUSINESS CRITICAL!
+                            vorr_gewenste_leverdatum = ParseDateToMkgFormat(orderLine.DeliveryDate),  // Delivery date
+                            vorr_leverdatum = ParseDateToMkgFormat(orderLine.DeliveryDate),  // Alternative delivery date field
+                            vorr_ref_extern = orderLine.PoNumber,  // External PO reference
+                            vorr_memo_extern = orderLine.Notes,  // External notes
+                            
+                            // ✅ ADDITIONAL BUSINESS FIELDS - IMPORTANT FOR WORKFLOW!
+                            vorr_regel = orderLine.LineNumber ?? "001",  // Line number
+                            vorr_tekening_nr = orderLine.DrawingNumber,  // Drawing number
+                            vorr_revisie = orderLine.Revision ?? "00",  // Revision
+                            vorr_leverancier_artikelcode = orderLine.SupplierPartNumber,  // Supplier part number
+                            
+                            // ✅ WORKFLOW & TRACKING FIELDS
+                            vorr_prioriteit = orderLine.Priority ?? "NORMAL",  // Priority
+                            vorr_status = orderLine.OrderStatus ?? "OPEN",  // Order status
+                            vorr_memo = BuildComprehensiveMemo(orderLine),  // Internal memo with extraction info
+                            
+                            // ✅ EXTRACTION METADATA - FOR TRACEABILITY
+                            vorr_extraction_method = orderLine.ExtractionMethod,  // How this was extracted
+                            vorr_bron = "EMAIL_AUTOMATION",  // Source system
+                            vorr_verwerkt_door = "ELCOTEC_BOT"  // Processed by
+                        }
+                    }
+                        }
+                    }
+                };
+
+                // Serialize for API call
+                var jsonData = JsonSerializer.Serialize(orderLineData, new JsonSerializerOptions { WriteIndented = true });
+                LogDebug($"📦 ENHANCED OrderLine data: {jsonData}");
+
+                // Real API call: Create order line
+                var content = new StringContent(jsonData, System.Text.Encoding.UTF8, "application/json");
+                var responseBody = await _mkgApiClient.PostAsync("Documents/vorr/", content);
+
+                LogDebug($"📥 MKG Order Line Response: {responseBody}");
+
+                // Check if the response indicates success
+                var success = !responseBody.Contains("error") && !responseBody.Contains("\"t_type\":1");
+
+                return new MkgOrderResult
+                {
+                    ArtiCode = orderLine.ArtiCode,
+                    PoNumber = orderLine.PoNumber,
+                    Description = orderLine.Description,  // ✅ ADDED: Include description in result
+                    Success = success,
+                    ErrorMessage = success ? null : ExtractErrorFromResponse(responseBody),
+                    MkgOrderId = mkgOrderNumber,
+                    ProcessedAt = DateTime.Now,
+                    HttpStatusCode = success ? "200" : "422",
+                    RequestPayload = jsonData,
+                    ResponsePayload = responseBody
+                };
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = ex.Message;
+                var isBusinessError = IsBusinessRuleViolation(errorMessage);
+
+                if (isBusinessError)
+                {
+                    progressManager?.IncrementBusinessErrors("MKG Response", errorMessage);
+                    LogError($"Business rule violation for {orderLine.ArtiCode}: {errorMessage}", ex);
+                }
+                else
+                {
+                    progressManager?.IncrementInjectionErrors();
+                    LogError($"Technical error injecting {orderLine.ArtiCode}: {errorMessage}", ex);
+                }
+
+                return new MkgOrderResult
+                {
+                    ArtiCode = orderLine.ArtiCode,
+                    PoNumber = orderLine.PoNumber,
+                    Description = orderLine.Description,
+                    Success = false,
+                    ErrorMessage = errorMessage,
+                    HttpStatusCode = isBusinessError ? "BUSINESS_RULE_VIOLATION" : "EXCEPTION"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Convert quantity string to decimal for MKG API
+        /// </summary>
+        private static decimal ParseQuantityToDecimal(string quantity)
+        {
+            if (string.IsNullOrEmpty(quantity)) return 1.0m;
+
+            // Clean the quantity string
+            var cleanQty = quantity.Replace(",", ".").Trim();
+
+            if (decimal.TryParse(cleanQty, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+                return result;
+
+            return 1.0m; // Default quantity
+        }
+
+        /// <summary>
+        /// Convert price string to decimal for MKG API
+        /// </summary>
+        private static decimal? ParsePriceToDecimal(string price)
+        {
+            if (string.IsNullOrEmpty(price)) return null;
+
+            // Clean the price string (remove currency symbols, etc.)
+            var cleanPrice = price.Replace("€", "").Replace("$", "").Replace(",", ".").Trim();
+
+            if (decimal.TryParse(cleanPrice, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+                return result;
+
+            return null; // No price available
+        }
+
+        /// <summary>
+        /// Convert date string to MKG format (yyyy-MM-dd)
+        /// </summary>
+        private static string ParseDateToMkgFormat(string dateString)
+        {
+            if (string.IsNullOrEmpty(dateString))
+                return DateTime.Now.AddDays(14).ToString("yyyy-MM-dd"); // Default to 2 weeks from now
+
+            if (DateTime.TryParse(dateString, out DateTime result))
+                return result.ToString("yyyy-MM-dd");
+
+            return DateTime.Now.AddDays(14).ToString("yyyy-MM-dd"); // Fallback
+        }
+
+        /// <summary>
+        /// Build comprehensive memo with extraction information
+        /// </summary>
+        private static string BuildComprehensiveMemo(OrderLine orderLine)
+        {
+            var memo = new List<string>();
+
+            if (!string.IsNullOrEmpty(orderLine.Notes))
+                memo.Add($"Notes: {orderLine.Notes}");
+
+            if (!string.IsNullOrEmpty(orderLine.ExtractionMethod))
+                memo.Add($"Extracted via: {orderLine.ExtractionMethod}");
+
+            if (!string.IsNullOrEmpty(orderLine.EmailDomain))
+                memo.Add($"Source: {orderLine.EmailDomain}");
+
+            memo.Add($"Auto-processed: {DateTime.Now:yyyy-MM-dd HH:mm}");
+
+            return string.Join(" | ", memo);
+        }
         /// <summary>
         /// Main injection method with enhanced duplicate handling, logging, and live statistics support
         /// </summary>
@@ -669,107 +869,7 @@ namespace Mkg_Elcotec_Automation.Controllers
         /// <summary>
         /// Inject a single order line into MKG system
         /// </summary>
-        private async Task<MkgOrderResult> InjectSingleOrderLine(
-                                                                OrderLine orderLine,
-                                                                string mkgOrderNumber,
-                                                                EnhancedProgressManager progressManager = null)
-        {
-            try 
-            {
-                LogDebug($"🔄 Injecting OrderLine {orderLine.ArtiCode} into MKG Order {mkgOrderNumber}");
 
-                // Apply unit conversion
-                var originalUnit = orderLine.Unit ?? "PCS";
-                var validUnit = ConvertToValidUnit(originalUnit);
-
-                if (originalUnit != validUnit)
-                {
-                    LogDebug($"🔄 Order unit conversion: '{originalUnit}' → '{validUnit}' for {orderLine.ArtiCode}");
-                }
-
-                var orderLineData = new
-                {
-                    request = new
-                    {
-                        InputData = new
-                        {
-                            vorr = new[]
-                            {
-                                new
-                                {
-                                    vorh_num = mkgOrderNumber,
-                                    vorr_regel = orderLine.LineNumber ?? "001",
-                                    vorr_arti_code = orderLine.ArtiCode,
-                                    vorr_omschrijving = orderLine.Description,
-                                    vorr_order_aantal = decimal.Parse(orderLine.Quantity ?? "1"),
-                                    vorr_eenh_order = validUnit,
-                                    vorr_prijs = decimal.Parse(orderLine.UnitPrice ?? "0"),
-                                    vorr_totaal_excl = orderLine.TotalPrice,
-                                    vorr_memo = orderLine.Notes ?? "",
-                                    vorr_extraction_method = orderLine.ExtractionMethod,
-                                    vorr_gewenste_leverdatum = orderLine.DeliveryDate ?? DateTime.Now.AddDays(14).ToString("yyyy-MM-dd")
-                                }
-                            }
-                        }
-                    }
-                };
-
-                // Serialize for API call
-                var jsonData = JsonSerializer.Serialize(orderLineData, new JsonSerializerOptions { WriteIndented = true });
-                LogDebug($"📦 OrderLine data: {jsonData}");
-
-                // Real API call: Create order line
-                var content = new StringContent(jsonData, System.Text.Encoding.UTF8, "application/json");
-                var responseBody = await _mkgApiClient.PostAsync("Documents/vorr/", content);
-
-                LogDebug($"📥 MKG Order Line Response: {responseBody}");
-
-                // Check if the response indicates success
-                var success = !responseBody.Contains("error") && !responseBody.Contains("\"t_type\":1");
-
-
-                return new MkgOrderResult
-                {
-                    ArtiCode = orderLine.ArtiCode,
-                    PoNumber = orderLine.PoNumber,
-                    Success = success,
-                    ErrorMessage = success ? null : ExtractErrorFromResponse(responseBody),
-                    MkgOrderId = mkgOrderNumber,
-                    ProcessedAt = DateTime.Now,
-                    HttpStatusCode = success ? "200" : "422",
-                    RequestPayload = jsonData,
-                    ResponsePayload = responseBody
-                };
-            }
-            catch (Exception ex)
-            {
-                // 🔧 FIX: Change _progressManager to progressManager
-                var errorMessage = ex.Message;
-                var isBusinessError = IsBusinessRuleViolation(errorMessage);
-
-                if (isBusinessError)
-                {
-                    // 🔧 FIXED: Remove underscore
-                    progressManager?.IncrementBusinessErrors("MKG Response", errorMessage);
-                    LogError($"Business rule violation for {orderLine.ArtiCode}: {errorMessage}", ex);
-                }
-                else
-                {
-                    // 🔧 FIXED: Remove underscore  
-                    progressManager?.IncrementInjectionErrors();
-                    LogError($"Technical error injecting {orderLine.ArtiCode}: {errorMessage}", ex);
-                }
-
-                return new MkgOrderResult
-                {
-                    ArtiCode = orderLine.ArtiCode,
-                    PoNumber = orderLine.PoNumber,
-                    Success = false,
-                    ErrorMessage = errorMessage,
-                    HttpStatusCode = isBusinessError ? "BUSINESS_RULE_VIOLATION" : "EXCEPTION"
-                };
-            }
-        }
         private List<OrderLine> FilterValidOrderLinesWithBusinessValidation(List<OrderLine> orderLines,
                                                                             EnhancedProgressManager progressManager = null)
         {

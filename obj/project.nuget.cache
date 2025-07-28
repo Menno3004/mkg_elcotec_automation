@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "SxKqq5Mgsf/rW2ku8L0+i8ooReoXzUYna6LerJW4NWck9o4yO4jiu5DOGv5+1Xlab5QSm4zb2VKhBxYOqlbSuA==",
+  "dgSpecHash": "aKg6QdvmILtTzurtCj/t2ZM4vppNjcIcq6plyCfl8BSiL20H3WwTEl5UCug8FDelUv66J3wONbWczZIUuD6hKg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj",
+  "projectFilePath": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_43\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Jester\\.nuget\\packages\\azure.core\\1.46.1\\azure.core.1.46.1.nupkg.sha512",
     "C:\\Users\\Jester\\.nuget\\packages\\azure.identity\\1.14.0\\azure.identity.1.14.0.nupkg.sha512",

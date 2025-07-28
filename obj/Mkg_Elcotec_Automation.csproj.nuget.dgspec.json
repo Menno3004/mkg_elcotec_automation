@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj": {}
+    "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_43\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj": {
+    "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_43\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj",
+        "projectUniqueName": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_43\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj",
         "projectName": "Mkg_Elcotec_Automation",
-        "projectPath": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj",
+        "projectPath": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_43\\Mkg_Elcotec_Automation\\Mkg_Elcotec_Automation.csproj",
         "packagesPath": "C:\\Users\\Jester\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_39_SERIOUSLY MOVING NOW\\Mkg_Elcotec_Automation\\obj\\",
+        "outputPath": "C:\\Users\\Jester\\source\\repos\\Mkg_Elcotec_Automation_43\\Mkg_Elcotec_Automation\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Jester\\AppData\\Roaming\\NuGet\\NuGet.Config",

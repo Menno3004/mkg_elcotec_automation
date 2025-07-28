@@ -7,6 +7,7 @@ using System.Configuration;
 using Mkg_Elcotec_Automation.Models;
 using System.Text.Json;
 using System.Net.Http;
+using System.Globalization;
 
 namespace Mkg_Elcotec_Automation.Controllers
 {
@@ -37,7 +38,308 @@ namespace Mkg_Elcotec_Automation.Controllers
             DebugLogger.LogError("Error message", ex, "MkgQuoteController");  // Use 'ex', not 'exception'
         }
         #endregion
+        /// <summary>
+        /// Inject a single quote line into MKG system - FIXED with complete business field mapping
+        /// </summary>
+        /// <summary>
+        /// Inject a single quote line into MKG system - COMPLETE REPLACEMENT
+        /// </summary>
+        private async Task<MkgQuoteLineResult> InjectSingleQuoteLine(
+            QuoteLine quoteLine,
+            string mkgQuoteNumber,
+            EnhancedProgressManager progressManager = null)
+        {
+            LogDebug($"🔄 LINE: Injecting quote line {quoteLine.ArtiCode} into quote {mkgQuoteNumber}");
 
+            try
+            {
+                // Apply unit conversion
+                var originalUnit = quoteLine.Unit ?? "PCS";
+                var validUnit = ConvertToValidUnit(originalUnit);
+
+                if (originalUnit != validUnit)
+                {
+                    LogDebug($"🔄 Quote unit conversion: '{originalUnit}' → '{validUnit}' for {quoteLine.ArtiCode}");
+                }
+
+                // ✅ FIXED: Complete business field mapping with all required MKG quote fields
+                var quoteLineData = new
+                {
+                    request = new
+                    {
+                        InputData = new
+                        {
+                            vofr = new[]  // ✅ Note: vofr for quotes, vorr for orders
+                            {
+                        new
+                        {
+                            // ✅ CORE IDENTIFICATION FIELDS
+                            admi_num = 1,  // Administration number
+                            vofh_num = mkgQuoteNumber,  // MKG Quote number
+                            
+                            // ✅ ARTICLE & DESCRIPTION - THESE WERE MISSING!
+                            vofr_arti_code = quoteLine.ArtiCode,  // Article code
+                            vofr_oms_1 = string.IsNullOrEmpty(quoteLine.Description)
+                                ? quoteLine.ArtiCode
+                                : quoteLine.Description,  // Description
+                            
+                            // ✅ QUANTITY & UNIT FIELDS - CRITICAL MISSING DATA!
+                            vofr_order_aantal = ParseQuantityToDecimal(quoteLine.Quantity),  // Quote quantity
+                            vofr_eenh_order = validUnit,  // Quote unit
+                            
+                            // ✅ PRICING FIELDS - CRITICAL MISSING DATA FOR QUOTES!
+                            vofr_prijs_order = ParsePriceToDecimal(quoteLine.QuotedPrice),  // Quoted price per unit
+                            vofr_totaal_prijs = quoteLine.TotalPrice > 0 ? quoteLine.TotalPrice : ParsePriceToDecimal(quoteLine.QuotedPrice),  // Total quoted price
+                            vofr_prijs = ParsePriceToDecimal(quoteLine.QuotedPrice),  // Price field (alternative)
+                            vofr_totaal_excl = quoteLine.TotalPrice > 0 ? quoteLine.TotalPrice : ParsePriceToDecimal(quoteLine.QuotedPrice),  // Total excluding VAT
+                            
+                            // ✅ QUOTE-SPECIFIC FIELDS - BUSINESS CRITICAL FOR QUOTES!
+                            vofr_levertijd = SafeGetStringValue(quoteLine.LeadTime, "14"),  // Lead time in days
+                            vofr_geldig_tot = ParseDateToMkgFormat(quoteLine.ValidUntil),  // Quote validity date
+                            vofr_leverwijze = "STANDARD",  // Delivery method (default)
+                            
+                            // ✅ DELIVERY & REFERENCE FIELDS
+                            vofr_gewenste_leverdatum = ParseDateToMkgFormat(quoteLine.RequestedDeliveryDate),  // Requested delivery
+                            vofr_ref_extern = quoteLine.RfqNumber,  // External RFQ reference
+                            vofr_memo_extern = SafeGetStringValue(quoteLine.Notes, ""),  // External notes/requirements
+                            
+                            // ✅ ADDITIONAL BUSINESS FIELDS - IMPORTANT FOR WORKFLOW!
+                            vofr_regel = quoteLine.LineNumber ?? "001",  // Line number
+                            vofr_tekening_nr = quoteLine.DrawingNumber,  // Drawing number
+                            vofr_revisie = quoteLine.Revision ?? "00",  // Revision
+                            vofr_leverancier_artikelcode = quoteLine.CustomerPartNumber,  // Customer part number (closest match)
+                            
+                            // ✅ QUOTE WORKFLOW & TRACKING FIELDS
+                            vofr_prioriteit = quoteLine.Priority ?? "NORMAL",  // Priority level
+                            vofr_status = quoteLine.QuoteStatus ?? "PENDING",  // Quote status
+                            vofr_memo = BuildComprehensiveQuoteMemo(quoteLine),  // Internal memo with extraction info
+                            
+                            // ✅ QUOTE-SPECIFIC BUSINESS FIELDS (using available fields)
+                            vofr_min_aantal = ParseQuantityToDecimal(quoteLine.Quantity),  // Use same quantity for min
+                            
+                            // ✅ EXTRACTION METADATA - FOR TRACEABILITY
+                            vofr_extraction_method = quoteLine.ExtractionMethod,  // How this was extracted
+                            vofr_bron = "EMAIL_AUTOMATION",  // Source system
+                            vofr_verwerkt_door = "ELCOTEC_BOT",  // Processed by
+                            
+                            // ✅ QUOTE VALIDITY & TERMS (using available fields)
+                            vofr_voorwaarden = SafeGetStringValue(quoteLine.PaymentTerms, "Standard terms apply"),  // Payment terms
+                            vofr_opmerkingen = SafeGetStringValue(quoteLine.SpecialInstructions, "")  // Special instructions
+                        }
+                    }
+                        }
+                    }
+                };
+
+                // Serialize for API call
+                var jsonData = JsonSerializer.Serialize(quoteLineData, new JsonSerializerOptions { WriteIndented = true });
+                LogDebug($"📦 ENHANCED Quote Line data: {jsonData}");
+
+                // ✅ REAL API call: Create quote line (was previously just a mock)
+                var content = new StringContent(jsonData, System.Text.Encoding.UTF8, "application/json");
+                var responseBody = await _mkgApiClient.PostAsync("Documents/vofr/", content);
+
+                LogDebug($"📥 MKG Quote Line Response: {responseBody}");
+
+                // Check if the response indicates success
+                var success = !responseBody.Contains("error") && !responseBody.Contains("\"t_type\":1");
+
+                if (success)
+                {
+                    LogDebug($"✅ LINE: Quote line {quoteLine.ArtiCode} injected successfully into quote {mkgQuoteNumber}");
+                }
+                else
+                {
+                    LogDebug($"❌ LINE: Quote line {quoteLine.ArtiCode} injection failed: {ExtractErrorFromResponse(responseBody)}");
+                }
+
+                return new MkgQuoteLineResult
+                {
+                    Success = success,
+                    ErrorMessage = success ? null : ExtractErrorFromResponse(responseBody),
+                    HttpStatusCode = success ? "200" : "422",
+                    RequestPayload = jsonData,
+                    ResponsePayload = responseBody
+                };
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = ex.Message;
+                var isBusinessError = IsBusinessRuleViolation(errorMessage);
+
+                if (isBusinessError)
+                {
+                    progressManager?.IncrementBusinessErrors("MKG Quote Response", errorMessage);
+                    LogError($"Business rule violation for quote {quoteLine.ArtiCode}: {errorMessage}", ex);
+                }
+                else
+                {
+                    progressManager?.IncrementInjectionErrors();
+                    LogError($"Technical error injecting quote {quoteLine.ArtiCode}: {errorMessage}", ex);
+                }
+
+                return new MkgQuoteLineResult
+                {
+                    Success = false,
+                    ErrorMessage = errorMessage,
+                    HttpStatusCode = isBusinessError ? "BUSINESS_RULE_VIOLATION" : "EXCEPTION",
+                    RequestPayload = "Error occurred before creating payload",
+                    ResponsePayload = null
+                };
+            }
+        }
+
+        #region Helper Methods for Quote Processing
+
+        /// <summary>
+        /// Convert quantity string to decimal for MKG API
+        /// </summary>
+        private static decimal ParseQuantityToDecimal(string quantity)
+        {
+            if (string.IsNullOrEmpty(quantity)) return 1.0m;
+
+            // Clean the quantity string
+            var cleanQty = quantity.Replace(",", ".").Trim();
+
+            if (decimal.TryParse(cleanQty, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+                return result;
+
+            return 1.0m; // Default quantity
+        }
+
+        /// <summary>
+        /// Convert price string to decimal for MKG API
+        /// </summary>
+        private static decimal? ParsePriceToDecimal(string price)
+        {
+            if (string.IsNullOrEmpty(price)) return null;
+
+            // Clean the price string (remove currency symbols, etc.)
+            var cleanPrice = price.Replace("€", "").Replace("$", "").Replace(",", ".").Trim();
+
+            if (decimal.TryParse(cleanPrice, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+                return result;
+
+            return null; // No price available
+        }
+
+        /// <summary>
+        /// Convert date string to MKG format (yyyy-MM-dd)
+        /// </summary>
+        private static string ParseDateToMkgFormat(string dateString)
+        {
+            if (string.IsNullOrEmpty(dateString))
+                return DateTime.Now.AddDays(30).ToString("yyyy-MM-dd"); // Default to 30 days from now for quotes
+
+            if (DateTime.TryParse(dateString, out DateTime result))
+                return result.ToString("yyyy-MM-dd");
+
+            return DateTime.Now.AddDays(30).ToString("yyyy-MM-dd"); // Fallback for quotes
+        }
+
+        /// <summary>
+        /// Safely get string value from dynamic property or return default
+        /// </summary>
+        private string SafeGetStringValue(dynamic value, string defaultValue)
+        {
+            try
+            {
+                return value?.ToString() ?? defaultValue;
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        /// <summary>
+        /// Build comprehensive memo with extraction information for quotes
+        /// </summary>
+        private string BuildComprehensiveQuoteMemo(QuoteLine quoteLine)
+        {
+            var memo = new List<string>();
+
+            if (!string.IsNullOrEmpty(quoteLine.QuoteNotes))
+                memo.Add($"Notes: {quoteLine.QuoteNotes}");
+
+            if (!string.IsNullOrEmpty(quoteLine.ExtractionMethod))
+                memo.Add($"Extracted via: {quoteLine.ExtractionMethod}");
+
+            if (!string.IsNullOrEmpty(quoteLine.EmailDomain))
+                memo.Add($"Source: {quoteLine.EmailDomain}");
+
+            if (!string.IsNullOrEmpty(quoteLine.SpecialInstructions))
+                memo.Add($"Special: {quoteLine.SpecialInstructions}");
+
+            memo.Add($"Quote auto-processed: {DateTime.Now:yyyy-MM-dd HH:mm}");
+
+            return string.Join(" | ", memo);
+        }
+
+        /// <summary>
+        /// Check if error message indicates a business rule violation
+        /// </summary>
+        private bool IsBusinessRuleViolation(string errorMessage)
+        {
+            if (string.IsNullOrEmpty(errorMessage)) return false;
+
+            var businessRuleKeywords = new[]
+            {
+        // Duplicate/Validation Errors
+        "duplicate", "already exists", "invalid reference", "constraint violation",
+
+        // Business Logic Errors  
+        "business rule", "validation failed", "unauthorized", "permission denied",
+
+        // Data Validation Errors
+        "invalid quantity", "price validation", "invalid unit", "invalid date",
+
+        // Customer/Authorization Errors
+        "customer restriction", "not authorized", "access denied", "invalid customer",
+
+        // MKG Specific Business Rules for Quotes
+        "quote expired", "invalid quote", "quote already processed", "price not allowed",
+        "voorraad tekort", "niet toegestaan", "ongeldig", "validatie fout",
+        "artikel niet gevonden", "klant blokkering", "credit limit",
+        "offerte verlopen", "offerte ongeldig"
+    };
+
+            return businessRuleKeywords.Any(keyword =>
+                errorMessage.ToLower().Contains(keyword.ToLower()));
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Parse discount percentage for MKG API
+        /// </summary>
+        private static decimal? ParseDiscountPercentage(string discountPercentage)
+        {
+            if (string.IsNullOrEmpty(discountPercentage)) return null;
+
+            var cleanDiscount = discountPercentage.Replace("%", "").Replace(",", ".").Trim();
+
+            if (decimal.TryParse(cleanDiscount, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+                return result;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Parse surcharge percentage for MKG API
+        /// </summary>
+        private static decimal? ParseSurchargePercentage(string surchargePercentage)
+        {
+            if (string.IsNullOrEmpty(surchargePercentage)) return null;
+
+            var cleanSurcharge = surchargePercentage.Replace("%", "").Replace(",", ".").Trim();
+
+            if (decimal.TryParse(cleanSurcharge, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+                return result;
+
+            return null;
+        }
+   
         #region Public Methods
 
         /// <summary>
@@ -515,35 +817,6 @@ namespace Mkg_Elcotec_Automation.Controllers
                 return $"Error parsing response: {ex.Message}";
             }
         }
-        private async Task<MkgQuoteLineResult> InjectSingleQuoteLine(QuoteLine quoteLine, string mkgQuoteNumber)
-        {
-            LogDebug($"🔄 LINE: Injecting quote line {quoteLine.ArtiCode} into quote {mkgQuoteNumber}");
-
-            try
-            {
-                // TODO: Implement actual quote line injection
-                await Task.Delay(100);
-
-                LogDebug($"✅ LINE: Mock quote line injected successfully");
-
-                return new MkgQuoteLineResult
-                {
-                    Success = true,
-                    HttpStatusCode = "200"
-                };
-            }
-            catch (Exception ex)
-            {
-                LogError($"Quote line injection failed for '{quoteLine.ArtiCode}'", ex);
-                return new MkgQuoteLineResult
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    HttpStatusCode = "500"
-                };
-            }
-        }
-
         #endregion
     }
 }
